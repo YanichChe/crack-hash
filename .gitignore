@@ -1,0 +1,6 @@
+# Project exclude paths
+/.gradle/
+/manager/build/
+/manager/build/classes/kotlin/main/
+/worker/build/
+/worker/build/classes/kotlin/main/
