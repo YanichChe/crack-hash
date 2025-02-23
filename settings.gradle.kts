@@ -4,4 +4,5 @@ include(
     "manager",
     "worker",
     "model",
+    "http-client"
 )
