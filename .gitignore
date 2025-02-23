@@ -1,6 +1,10 @@
-# Project exclude paths
-/.gradle/
-/manager/build/
-/manager/build/classes/kotlin/main/
-/worker/build/
-/worker/build/classes/kotlin/main/
+*.iml
+.gradle
+.kotlin
+/local.properties
+/build
+**/build
+**/out/
+local.properties
+.idea/
+/.idea/
