@@ -2,5 +2,6 @@ rootProject.name = "CrackHash"
 
 include(
     "manager",
-    "worker"
+    "worker",
+    "model",
 )
