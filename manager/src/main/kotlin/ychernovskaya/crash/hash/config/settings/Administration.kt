@@ -1,4 +1,4 @@
-package ychernovskaya.crash.hash.config
+package ychernovskaya.crash.hash.config.settings
 
 import io.github.flaxoos.ktor.server.plugins.ratelimiter.RateLimiting
 import io.github.flaxoos.ktor.server.plugins.ratelimiter.implementations.TokenBucket

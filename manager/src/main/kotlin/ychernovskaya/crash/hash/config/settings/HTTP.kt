@@ -1,4 +1,4 @@
-package ychernovskaya.crash.hash.config
+package ychernovskaya.crash.hash.config.settings
 
 import com.ucasoft.ktor.simpleCache.SimpleCache
 import com.ucasoft.ktor.simpleMemoryCache.memoryCache
@@ -14,6 +14,7 @@ import kotlin.time.Duration.Companion.seconds
 fun Application.configureHTTP() {
     install(CORS) {
         allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Head)
         anyHost() // @TODO: Don't do this in production if possible.
     }

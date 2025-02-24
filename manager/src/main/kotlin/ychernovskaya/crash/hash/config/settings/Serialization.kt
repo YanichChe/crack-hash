@@ -1,4 +1,4 @@
-package ychernovskaya.crash.hash.config
+package ychernovskaya.crash.hash.config.settings
 
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.xml.xml
