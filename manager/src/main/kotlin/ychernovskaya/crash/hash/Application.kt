@@ -1,12 +1,12 @@
 package ychernovskaya.crash.hash
 
-import ychernovskaya.crash.hash.config.configureAdministration
-import ychernovskaya.crash.hash.config.configureFrameworks
+import ychernovskaya.crash.hash.config.settings.configureAdministration
+import ychernovskaya.crash.hash.config.settings.configureFrameworks
 import io.ktor.server.netty.EngineMain
-import ychernovskaya.crash.hash.config.configureHTTP
-import ychernovskaya.crash.hash.config.configureMonitoring
-import ychernovskaya.crash.hash.config.configureSerialization
-import ychernovskaya.crash.hash.config.configureRouting
+import ychernovskaya.crash.hash.config.settings.configureHTTP
+import ychernovskaya.crash.hash.config.settings.configureMonitoring
+import ychernovskaya.crash.hash.config.settings.configureSerialization
+import ychernovskaya.crash.hash.config.settings.configureRouting
 import io.ktor.server.application.Application
 
 fun main(args: Array<String>) {
