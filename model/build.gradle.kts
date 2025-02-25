@@ -2,7 +2,7 @@ import org.gradle.kotlin.dsl.sourceSets
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileTool
 
 plugins {
-    kotlin("jvm") version "1.8.20"
+    kotlin("jvm") version "2.1.10"
     java
 }
 
