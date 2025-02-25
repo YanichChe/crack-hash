@@ -1,9 +1,9 @@
 package ychernovskaya.crash.hash
 
-import ychernovskaya.crash.hash.config.configureFrameworks
-import ychernovskaya.crash.hash.config.configureHTTP
-import ychernovskaya.crash.hash.config.configureSerialization
-import ychernovskaya.crash.hash.config.configureRouting
+import ychernovskaya.crash.hash.config.setting.configureFrameworks
+import ychernovskaya.crash.hash.config.setting.configureHTTP
+import ychernovskaya.crash.hash.config.setting.configureSerialization
+import ychernovskaya.crash.hash.config.setting.configureRouting
 import io.ktor.server.application.Application
 import io.ktor.server.netty.EngineMain
 
