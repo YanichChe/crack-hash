@@ -1,4 +1,3 @@
-
 val koin_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -25,12 +24,16 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("io.ktor:ktor-server-call-logging")
+    implementation("io.ktor:ktor-server-call-id")
     implementation("io.ktor:ktor-server-auto-head-response")
     implementation("io.ktor:ktor-server-request-validation")
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-cors")
     implementation("io.ktor:ktor-server-default-headers")
+    implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-swagger")
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
@@ -38,6 +41,11 @@ dependencies {
     implementation("io.insert-koin:koin-ktor:$koin_version")
     implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
     implementation("io.ktor:ktor-server-netty")
+
+    implementation(project(":model"))
+
+    implementation("com.github.dpaukov:combinatoricslib3:3.4.0")
+
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml")
     testImplementation("io.ktor:ktor-server-test-host")
