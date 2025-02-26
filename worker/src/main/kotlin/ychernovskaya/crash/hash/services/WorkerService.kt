@@ -51,7 +51,12 @@ class WorkerServiceImpl(
                     }
                 }
             }
-            managerApi.sentEncodedData(configuration.managerUrl, resultList)
+            managerApi.sentEncodedData(
+                managerUrl = configuration.managerUrl,
+                requestId = requestId,
+                partNumber = partNumber,
+                encodedData = resultList
+            )
         }
 
         return true

@@ -1,5 +1,6 @@
 package ychernovskaya.crash.hash.config.routing
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.callid.callId
 import io.ktor.server.response.respond
@@ -17,9 +18,10 @@ import ychernovskaya.crash.hash.services.ManagerService
 fun Route.hash() {
     val managerService by application.inject<ManagerService>()
     val configuration by application.inject<Configuration>()
-    val logger =  LoggerFactory.getLogger(Route::class.java)
+    val logger = LoggerFactory.getLogger(Route::class.java)
+    XmlMapper()
 
-    route("hash") {
+    route("hash-crack") {
         get("status") {
             call.callId
                 ?.let {
@@ -42,7 +44,7 @@ fun Route.hash() {
                     )
                 )
         }
-        post<HashData>("crack") { hashData ->
+        post<HashData> { hashData ->
             call.callId
                 ?.let { callId ->
                     managerService.addTask(

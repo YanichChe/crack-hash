@@ -1,3 +1,4 @@
+val ktor_version: String by project
 val koin_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -47,9 +48,13 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.squareup.moshi:moshi:1.15.2")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-xml:$ktor_version")
+    implementation("io.ktor:ktor-serialization-jackson:2.3.5")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
 
     implementation(project(":model"))
-    implementation(project(":http-client"))
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
