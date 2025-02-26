@@ -30,7 +30,7 @@ fun Routing.configureWebRouting() {
 }
 
 fun Route.api() {
-    route("api") {
+    route("internal/api") {
         encode()
     }
 }

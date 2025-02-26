@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.Configuration
+import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.api.WorkerApi
 import java.util.concurrent.ConcurrentHashMap
 
@@ -23,6 +24,7 @@ class ManagerServiceImpl(
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
     private val results: ConcurrentHashMap<String, Result> = ConcurrentHashMap()
+    private val symbols = ('a'..'z').map { it.toString() } + ('0'..'9').map { it.toString() }
 
     override suspend fun addTask(callId: String, hash: String, maxLength: Int) {
         if (results.containsKey(callId)) {
@@ -31,21 +33,22 @@ class ManagerServiceImpl(
         }
 
         results.put(callId, Result(data = emptyList<String>(), 0))
-        logger.info("Task $callId added")
+        logger.info("Task added")
         withContext(Dispatchers.IO) {
             try {
-                val encodedData = workerApi.getEncoded(
+                val encodedData = workerApi.sendEncodeTask(
                     workerUrl = configuration.workerUrl,
-                    hash = hash,
-                    maxLength = maxLength
+                    hashData = HashData(hash, maxLength, symbols),
+                    partNumber = 0,
+                    partCount = 10,
+                    requestId = callId
                 )
                 logger.info("Encoded data $encodedData")
-                results[callId] = Result(data = encodedData, polledNodesCount = 1)
             } catch (e: Exception) {
-                logger.error("Error processing task for callId $callId: ${e.message}")
+                logger.error("Error processing task: ${e.message}")
             }
         }
-        logger.info("End of task $callId")
+        logger.info("End of task")
     }
 
     override fun checkResult(callId: String): Result? {

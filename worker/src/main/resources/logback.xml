@@ -9,4 +9,6 @@
     </root>
     <logger name="org.eclipse.jetty" level="DEBUG"/>
     <logger name="io.netty" level="DEBUG"/>
+    <logger name="io.ktor.server.request" level="DEBUG"/>
+    <logger name="io.ktor.server.plugins.calllogging" level="DEBUG"/>
 </configuration>
