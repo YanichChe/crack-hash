@@ -1,11 +1,11 @@
 package ychernovskaya.crash.hash.config.di
 
 import com.typesafe.config.ConfigFactory
+import io.ktor.server.config.HoconApplicationConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import io.ktor.server.config.HoconApplicationConfig
 import ychernovskaya.crash.hash.Configuration
 import ychernovskaya.crash.hash.api.WorkerApi
 import ychernovskaya.crash.hash.api.WorkerApiImpl
@@ -33,8 +33,8 @@ private fun Module.configuration() {
 
     val nodesCount =
         config.propertyOrNull("nodes.count")
-        ?.getString()
-        ?: System.getenv("NODES_COUNT")
+            ?.getString()
+            ?: System.getenv("NODES_COUNT")
 
     val workerUrl =
         config.propertyOrNull("worker.url")
