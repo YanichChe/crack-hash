@@ -33,7 +33,7 @@ val generateJaxbClasses by tasks.registering(JavaExec::class) {
     args(
         "-d", outputDirectory.absolutePath,
         "-p", "ychernovskaya.crash.hash.model",
-        "${schemaDirectory}/CrackHashManagerRequest.xsd",
+        "${schemaDirectory}/CrackHashManagerSchema.xsd",
         "${schemaDirectory}/CrackHashWorkerSchema.xsd"
     )
 }
