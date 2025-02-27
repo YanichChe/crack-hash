@@ -1,6 +1,7 @@
 package ychernovskaya.crash.hash.config.routing
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.callid.callId
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -11,23 +12,27 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
+import ychernovskaya.crash.hash.RequestId
 import ychernovskaya.crash.hash.services.ManagerService
 
 fun Route.hash() {
     val managerService by application.inject<ManagerService>()
-    val logger = LoggerFactory.getLogger(Route::class.java)
+    LoggerFactory.getLogger(Route::class.java)
 
     route("hash-crack") {
-        get("status") {
-            call.callId
+        get("status/{requestId}") {
+            call.requestId()
                 ?.let {
                     managerService.checkResult(it)
                 }
                 ?.let { (data, allPartsNumberCount, currentPartsNumberCount) ->
-                    logger.info("Result: $data $allPartsNumberCount $currentPartsNumberCount")
                     call.respond(
                         StatusResponse(
-                            status = if (allPartsNumberCount == currentPartsNumberCount.get()) STATUS.READY else STATUS.IN_PROGRESS,
+                            status = if (allPartsNumberCount == currentPartsNumberCount.get()) {
+                                STATUS.READY
+                            } else {
+                                STATUS.IN_PROGRESS
+                            },
                             data = data
                         )
                     )
@@ -52,6 +57,10 @@ fun Route.hash() {
                 ?: call.respond(HttpStatusCode.BadRequest)
         }
     }
+}
+
+private fun ApplicationCall.requestId(): RequestId? {
+    return parameters["requestId"]
 }
 
 @Serializable
