@@ -31,11 +31,6 @@ private fun Module.api() {
 private fun Module.configuration() {
     val config = loadConfig()
 
-    val nodesCount =
-        config.propertyOrNull("nodes.count")
-            ?.getString()
-            ?: System.getenv("NODES_COUNT")
-
     val workerUrl =
         config.propertyOrNull("worker.url")
             ?.getString()
@@ -43,8 +38,6 @@ private fun Module.configuration() {
             ?: "worker-url"
 
     val configuration = object : Configuration {
-        override val nodesCount: Int
-            get() = nodesCount.toInt()
         override val workerUrl: String
             get() = workerUrl
     }
