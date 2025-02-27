@@ -3,6 +3,7 @@ package ychernovskaya.crash.hash.config.routing
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.callid.callId
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
@@ -44,7 +45,9 @@ fun Route.hash() {
                     )
                 )
         }
-        post<HashData> { hashData ->
+
+        post {
+            val hashData = call.receive<HashData>()
             call.callId
                 ?.let { callId ->
                     managerService.addTask(
