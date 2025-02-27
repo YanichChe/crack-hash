@@ -1,6 +1,5 @@
 package ychernovskaya.crash.hash.services
 
-import co.touchlab.stately.collections.ConcurrentMutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -13,6 +12,7 @@ import ychernovskaya.crash.hash.Configuration
 import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.api.ManagerApi
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 
 interface WorkerService {
     fun addEncodeHashTask(hashData: HashData, requestId: String, partNumber: Int, partCount: Int): Boolean
@@ -23,7 +23,7 @@ class WorkerServiceImpl(
     private val configuration: Configuration
 ) : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
-    var resultList = ConcurrentMutableList<String>()
+    var resultMap = ConcurrentHashMap<String, MutableList<String>>()
 
     override fun addEncodeHashTask(
         hashData: HashData,
@@ -36,6 +36,7 @@ class WorkerServiceImpl(
             return false
         }
 
+        resultMap.put(requestId, mutableListOf())
         CoroutineScope(Dispatchers.Default).launch {
             launchWithSemaphore(
                 permits = 10,
@@ -47,7 +48,7 @@ class WorkerServiceImpl(
                 if (result.md5() == hashData.hash) {
                     withContext(Dispatchers.Default) {
                         logger.info("Encoded data found: $result")
-                        resultList.add(result)
+                        resultMap.get(requestId)!!.add(result)
                     }
                 }
             }
@@ -55,7 +56,7 @@ class WorkerServiceImpl(
                 managerUrl = configuration.managerUrl,
                 requestId = requestId,
                 partNumber = partNumber,
-                encodedData = resultList
+                encodedData = resultMap.get(requestId)!!
             )
         }
 

@@ -32,7 +32,7 @@ fun Route.encode() {
                             maxLength = crackHashManagerRequest.maxLength,
                             symbols = crackHashManagerRequest.alphabet.symbols,
                         ),
-                        requestId = it,
+                        requestId = crackHashManagerRequest.requestId,
                         partNumber = crackHashManagerRequest.partNumber,
                         partCount = crackHashManagerRequest.partCount
                     )

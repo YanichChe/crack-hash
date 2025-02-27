@@ -8,9 +8,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import io.ktor.http.headers
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.model.CrackHashWorkerResponse
 
@@ -35,12 +33,10 @@ class ManagerApiImpl : ManagerApi {
         val xmlBody = CrackHashWorkerResponse()
         xmlBody.partNumber = partNumber
         xmlBody.answers = answers
+        xmlBody.requestId = requestId
 
         try {
             val response: HttpResponse = httpClient.patch("$managerUrl/internal/api/hash-crack/request") {
-                headers {
-                    append(HttpHeaders.XRequestId, requestId)
-                }
                 contentType(ContentType.Application.Xml)
                 setBody(xmlMapper.writeValueAsString(xmlBody))
             }
