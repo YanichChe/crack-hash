@@ -21,7 +21,7 @@ fun appModule() = module {
 }
 
 private fun Module.services() {
-    factoryOf(::ManagerServiceImpl) bind ManagerService::class
+    single { ManagerServiceImpl(workerApi = get(), configuration = get()) } bind ManagerService::class
 }
 
 private fun Module.api() {

@@ -1,6 +1,5 @@
 package ychernovskaya.crash.hash.config.routing
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.callid.callId
 import io.ktor.server.response.respond
@@ -12,14 +11,11 @@ import io.ktor.server.routing.route
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
-import ychernovskaya.crash.hash.Configuration
 import ychernovskaya.crash.hash.services.ManagerService
 
 fun Route.hash() {
     val managerService by application.inject<ManagerService>()
-    val configuration by application.inject<Configuration>()
     val logger = LoggerFactory.getLogger(Route::class.java)
-    XmlMapper()
 
     route("hash-crack") {
         get("status") {
@@ -27,12 +23,11 @@ fun Route.hash() {
                 ?.let {
                     managerService.checkResult(it)
                 }
-                ?.let { (data, polledNodesCount) ->
-                    logger.info("Result: $data $polledNodesCount")
-                    logger.debug("Nodes: ${configuration.nodesCount}")
+                ?.let { (data, allPartsNumberCount, currentPartsNumberCount) ->
+                    logger.info("Result: $data $allPartsNumberCount $currentPartsNumberCount")
                     call.respond(
                         StatusResponse(
-                            status = if (polledNodesCount == configuration.nodesCount) STATUS.READY else STATUS.IN_PROGRESS,
+                            status = if (allPartsNumberCount == currentPartsNumberCount.get()) STATUS.READY else STATUS.IN_PROGRESS,
                             data = data
                         )
                     )
