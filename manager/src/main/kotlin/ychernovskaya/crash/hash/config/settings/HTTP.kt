@@ -14,6 +14,7 @@ import kotlin.time.Duration.Companion.seconds
 fun Application.configureHTTP() {
     install(CORS) {
         allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Head)
         anyHost() // @TODO: Don't do this in production if possible.
