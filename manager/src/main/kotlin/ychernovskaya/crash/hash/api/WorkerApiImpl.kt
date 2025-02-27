@@ -46,12 +46,11 @@ class WorkerApiImpl : WorkerApi {
         xmlBody.alphabet = alphabet
         xmlBody.partCount = partCount
         xmlBody.partNumber = partNumber
+        xmlBody.requestId = requestId
 
         try {
+            logger.debug("REQUEST ID: {}", requestId)
             val response: HttpResponse = httpClient.post("$workerUrl/internal/api/hash-crack/task") {
-                headers {
-                    append(HttpHeaders.XRequestId, requestId)
-                }
                 contentType(ContentType.Application.Xml)
                 setBody(xmlMapper.writeValueAsString(xmlBody))
             }
