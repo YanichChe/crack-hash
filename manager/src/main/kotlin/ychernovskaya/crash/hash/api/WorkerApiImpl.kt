@@ -8,11 +8,10 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import io.ktor.http.headers
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.HashData
+import ychernovskaya.crash.hash.RequestId
 import ychernovskaya.crash.hash.model.CrackHashManagerRequest
 
 interface WorkerApi {
@@ -21,8 +20,8 @@ interface WorkerApi {
         hashData: HashData,
         partCount: Int,
         partNumber: Int,
-        requestId: String
-    )
+        requestId: RequestId
+    ): Boolean
 }
 
 class WorkerApiImpl : WorkerApi {
@@ -35,8 +34,8 @@ class WorkerApiImpl : WorkerApi {
         hashData: HashData,
         partCount: Int,
         partNumber: Int,
-        requestId: String
-    ) {
+        requestId: RequestId
+    ): Boolean {
         val alphabet = CrackHashManagerRequest.Alphabet()
         alphabet.symbols.addAll(hashData.symbols)
 
@@ -49,15 +48,17 @@ class WorkerApiImpl : WorkerApi {
         xmlBody.requestId = requestId
 
         try {
-            logger.debug("REQUEST ID: {}", requestId)
+            logger.debug("Request: {}", requestId)
             val response: HttpResponse = httpClient.post("$workerUrl/internal/api/hash-crack/task") {
                 contentType(ContentType.Application.Xml)
                 setBody(xmlMapper.writeValueAsString(xmlBody))
             }
 
             logger.debug("Response: {} - {}", response.status, response.bodyAsText())
+            return true
         } catch (e: Exception) {
             logger.error("Error while sending request", e)
+            return false
         }
     }
 }
