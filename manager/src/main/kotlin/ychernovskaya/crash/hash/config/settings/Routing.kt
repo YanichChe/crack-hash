@@ -1,5 +1,7 @@
 package ychernovskaya.crash.hash.config.settings
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.JsonMappingException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -16,8 +18,21 @@ import ychernovskaya.crash.hash.config.routing.internal
 fun Application.configureRouting() {
     install(AutoHeadResponse)
     install(StatusPages) {
+        exception<JsonProcessingException> { call, cause ->
+            call.respondText(
+                text = "400: Incorrect JSON format. More: ${cause.message}",
+                status = HttpStatusCode.BadRequest
+            )
+        }
+
+        exception<JsonMappingException> { call, cause ->
+            call.respondText(
+                text = "400: Error in mapping JSON. More: ${cause.message}",
+                status = HttpStatusCode.BadRequest
+            )
+        }
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
+            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
     }
     routing {
