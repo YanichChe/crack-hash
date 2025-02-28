@@ -62,45 +62,45 @@ class WorkerServiceImpl(
 
         return true
     }
+}
 
-    @OptIn(ExperimentalStdlibApi::class)
-    private fun String.md5(): String {
-        val md = MessageDigest.getInstance("MD5")
-        val digest = md.digest(this.toByteArray())
-        return digest.toHexString()
-    }
+@OptIn(ExperimentalStdlibApi::class)
+private fun String.md5(): String {
+    val md = MessageDigest.getInstance("MD5")
+    val digest = md.digest(this.toByteArray())
+    return digest.toHexString()
+}
 
-    private suspend fun CoroutineScope.launchWithSemaphore(
-        permits: Int,
-        hashData: HashData,
-        skip: Int,
-        limit: Int,
-        onCombinationChecked: suspend (String) -> Unit
-    ) = coroutineScope {
-        val semaphore = Semaphore(permits)
+private suspend fun CoroutineScope.launchWithSemaphore(
+    permits: Int,
+    hashData: HashData,
+    skip: Int,
+    limit: Int,
+    onCombinationChecked: suspend (String) -> Unit
+) = coroutineScope {
+    val semaphore = Semaphore(permits)
 
-        (hashData.maxLength downTo 1)
-            .asSequence()
-            .flatMap { length ->
-                Generator.permutation(hashData.symbols).withRepetitions(length)
-            }
-            .drop(skip)
-            .take(limit)
+    (hashData.maxLength downTo 1)
+        .asSequence()
+        .flatMap { length ->
+            Generator.permutation(hashData.symbols).withRepetitions(length)
+        }
+        .drop(skip)
+        .take(limit)
 
-        for (length in hashData.maxLength downTo 1) {
-            Generator.permutation(hashData.symbols)
-                .withRepetitions(length)
-                .forEach { combination ->
-                    launch {
-                        semaphore.acquire()
-                        try {
-                            val result = combination.joinToString("")
-                            onCombinationChecked(result)
-                        } finally {
-                            semaphore.release()
-                        }
+    for (length in hashData.maxLength downTo 1) {
+        Generator.permutation(hashData.symbols)
+            .withRepetitions(length)
+            .forEach { combination ->
+                launch {
+                    semaphore.acquire()
+                    try {
+                        val result = combination.joinToString("")
+                        onCombinationChecked(result)
+                    } finally {
+                        semaphore.release()
                     }
                 }
-        }
+            }
     }
 }
