@@ -4,18 +4,17 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult
-import ychernovskaya.crash.hash.HashData
+import ychernovskaya.crash.hash.model.HashInfo
 
 private const val MaxLengthValue = 6
 
 fun Application.configureValidation() {
     install(RequestValidation) {
-        validate<HashData> { hashData ->
-            if (hashData.maxLength > MaxLengthValue) {
+        validate<HashInfo> { hashData ->
+            if (hashData.maxLength > MaxLengthValue)
                 ValidationResult.Invalid("Max length more than $MaxLengthValue characters.")
-            } else if (isMD5Hash(hashData.hash).not()) {
+            else if (isMD5Hash(hashData.hash).not())
                 ValidationResult.Invalid("This is not MD5 hash.")
-            }
             else ValidationResult.Valid
         }
     }
