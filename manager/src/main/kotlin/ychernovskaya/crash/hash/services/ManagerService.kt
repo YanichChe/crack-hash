@@ -10,12 +10,6 @@ import ychernovskaya.crash.hash.api.WorkerApi
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.pow
 
-data class Result(
-    val data: MutableList<String>,
-    val allPartsNumberCount: Int,
-    val currentPartsNumberCount: AtomicInt
-)
-
 interface ManagerService {
     suspend fun addTask(callId: String, hash: String, maxLength: Int)
     fun checkResult(callId: String): Result?
@@ -23,6 +17,7 @@ interface ManagerService {
 }
 
 private const val PartCount = 1_000_000
+private val symbols = ('a'..'z').map { it.toString() } + ('0'..'9').map { it.toString() }
 
 class ManagerServiceImpl(
     private val workerApi: WorkerApi,
@@ -30,7 +25,6 @@ class ManagerServiceImpl(
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
     private val results: ConcurrentHashMap<String, Result> = ConcurrentHashMap()
-    private val symbols = ('a'..'z').map { it.toString() } + ('0'..'9').map { it.toString() }
 
     override suspend fun addTask(callId: String, hash: String, maxLength: Int) {
         if (results.containsKey(callId)) {
@@ -43,7 +37,11 @@ class ManagerServiceImpl(
 
         results.put(
             callId,
-            Result(data = mutableListOf(), allPartsNumberCount = allPartsNumberCount + 1, currentPartsNumberCount = AtomicInt(0))
+            Result(
+                data = mutableListOf(),
+                allPartsNumberCount = allPartsNumberCount + 1,
+                currentPartsNumberCount = AtomicInt(0)
+            )
         )
         logger.info("Task added: $callId")
         withContext(Dispatchers.IO) {
@@ -67,7 +65,7 @@ class ManagerServiceImpl(
     }
 
     override fun checkResult(callId: String): Result? {
-        logger.info("Results data: $results")
+        logger.debug("Results data: {}", results)
         return results[callId]
     }
 
@@ -87,3 +85,9 @@ private fun calcSize(maxLength: Int, symbolsCount: Double = 36.0): Long {
         .map { symbolsCount.pow(it.toDouble()).toLong() }
         .sum()
 }
+
+data class Result(
+    val data: MutableList<String>,
+    val allPartsNumberCount: Int,
+    val currentPartsNumberCount: AtomicInt
+)
