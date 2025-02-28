@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -31,6 +32,14 @@ fun Application.configureRouting() {
                 status = HttpStatusCode.BadRequest
             )
         }
+
+        exception<RequestValidationException> { call, cause ->
+            call.respondText(
+                text = "400: Invalid input data: ${cause.reasons.joinToString(", ")}",
+                status = HttpStatusCode.BadRequest
+            )
+        }
+
         exception<Throwable> { call, cause ->
             call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
