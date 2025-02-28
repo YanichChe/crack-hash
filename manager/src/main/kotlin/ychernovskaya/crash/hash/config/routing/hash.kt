@@ -10,10 +10,13 @@ import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.RequestId
+import ychernovskaya.crash.hash.model.HashInfo
+import ychernovskaya.crash.hash.model.RequestResponse
+import ychernovskaya.crash.hash.model.STATUS
+import ychernovskaya.crash.hash.model.StatusResponse
 import ychernovskaya.crash.hash.services.ManagerService
 
 fun Route.hash() {
@@ -47,13 +50,13 @@ fun Route.hash() {
         }
 
         post {
-            val hashData = call.receive<HashData>()
+            val hashInfo = call.receive<HashInfo>()
             call.callId
                 ?.let { callId ->
                     managerService.addTask(
                         callId = callId,
-                        hash = hashData.hash,
-                        maxLength = hashData.maxLength
+                        hash = hashInfo.hash,
+                        maxLength = hashInfo.maxLength
                     )
                     call.respond(RequestResponse(callId))
                 }
@@ -65,26 +68,3 @@ fun Route.hash() {
 private fun ApplicationCall.requestId(): RequestId? {
     return parameters["requestId"]
 }
-
-@Serializable
-private data class HashData(
-    val hash: String,
-    val maxLength: Int
-)
-
-@Serializable
-private data class RequestResponse(
-    val requestId: String
-)
-
-private enum class STATUS {
-    IN_PROGRESS,
-    READY,
-    ERROR
-}
-
-@Serializable
-private data class StatusResponse(
-    val status: STATUS,
-    val data: List<String>? = null
-)
