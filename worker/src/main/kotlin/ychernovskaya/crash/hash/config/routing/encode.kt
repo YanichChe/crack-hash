@@ -26,7 +26,7 @@ fun Route.encode() {
                         crackHashManagerRequestStr,
                         CrackHashManagerRequest::class.java
                     )
-                    workerService.addEncodeHashTask(
+                    val result = workerService.addEncodeHashTask(
                         hashData = HashData(
                             hash = crackHashManagerRequest.hash,
                             maxLength = crackHashManagerRequest.maxLength,
@@ -36,7 +36,10 @@ fun Route.encode() {
                         partNumber = crackHashManagerRequest.partNumber,
                         partCount = crackHashManagerRequest.partCount
                     )
-                    call.respond(HttpStatusCode.OK)
+                    when (result) {
+                        true -> call.respond(HttpStatusCode.OK)
+                        false -> call.respond(HttpStatusCode.BadRequest, "Incorrect hash data")
+                    }
                 }
                 ?: call.respond(HttpStatusCode.BadRequest)
         }
