@@ -5,9 +5,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import ychernovskaya.crash.hash.config.routing.encode
@@ -27,10 +29,19 @@ fun Application.configureRouting() {
 
 fun Routing.configureWebRouting() {
     api()
+    healthRouting()
 }
 
 fun Route.api() {
     route("internal/api") {
         encode()
+    }
+}
+
+fun Route.healthRouting() {
+    route("health") {
+        get {
+            call.respond(HttpStatusCode.OK)
+        }
     }
 }

@@ -7,16 +7,14 @@ plugins {
     kotlin("jvm") version "2.1.10"
     id("io.ktor.plugin") version "3.0.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+    id("application")
 }
 
 group = "ychernovskaya"
 version = "0.0.1"
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
-
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    mainClass.set("ychernovskaya.crash.hash.ApplicationKt")
 }
 
 repositories {
@@ -58,4 +56,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:2.3.5")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "ychernovskaya.crash.hash.ApplicationKt"
+    }
 }

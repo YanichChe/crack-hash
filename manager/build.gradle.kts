@@ -7,16 +7,14 @@ plugins {
     kotlin("jvm") version "2.1.10"
     id("io.ktor.plugin") version "3.0.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+    id("application")
 }
 
 group = "ychernovskaya.crash.hash"
 version = "0.0.1"
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
-
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    mainClass.set("ychernovskaya.crash.hash.ApplicationKt")
 }
 
 repositories {
@@ -58,4 +56,10 @@ dependencies {
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "ychernovskaya.crash.hash.ApplicationKt"
+    }
 }
