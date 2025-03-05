@@ -1,0 +1,25 @@
+FROM gradle:latest AS deps
+
+WORKDIR /app
+
+COPY . .
+
+RUN gradle dependencies --refresh-dependencies --info -DartifactVersion=0.0.1
+
+FROM deps AS build
+
+RUN gradle clean classes --info --build-cache -DartifactVersion=0.0.1
+
+FROM build AS package
+
+RUN gradle build -x test --info --build-cache -DartifactVersion=0.0.1 \
+    && mkdir -p /app/generated \
+    && find /app -name "worker-all.jar" -exec mv {} /app/generated/ \;
+
+RUN cp /app/generated/worker-all.jar /app/generated/worker.jar
+
+FROM amazoncorretto:22 AS runtime
+
+COPY --from=package /app/generated/worker.jar /app/worker.jar
+
+ENTRYPOINT ["java", "-jar", "/app/worker.jar"]

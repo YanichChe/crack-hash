@@ -32,10 +32,8 @@ private fun Module.services() {
 private fun Module.configuration() {
     val config = loadConfig()
 
-    val managerUrl =
-        config.propertyOrNull("manager.url")
-            ?.getString()
-            ?: System.getenv("MANAGER_URL")
+    val managerUrl = System.getenv("MANAGER_URL")
+            ?: config.propertyOrNull("manager.url")?.getString()
             ?: "manager-url"
 
     val configuration = object : Configuration {

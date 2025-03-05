@@ -31,10 +31,8 @@ private fun Module.api() {
 private fun Module.configuration() {
     val config = loadConfig()
 
-    val workerUrl =
-        config.propertyOrNull("worker.url")
-            ?.getString()
-            ?: System.getenv("WORKER_URL")
+    val workerUrl = System.getenv("WORKER_URL")
+            ?: config.propertyOrNull("worker.url")?.getString()
             ?: "worker-url"
 
     val configuration = object : Configuration {
