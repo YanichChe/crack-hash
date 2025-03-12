@@ -12,109 +12,6 @@ services:
     networks:
       - crack-hash-net
 
-  create_mongo_keyfile:
-    image: mongo:6.0
-    container_name: create_mongo_keyfile
-    restart: no
-    entrypoint: [ "bash", "pki_setup.sh" ]
-    volumes:
-      - ./scripts/pki_setup.sh:/pki_setup.sh
-      - mongo-keyfile:/etc/mongodb/pki
-    networks:
-      - crack-hash-net
-
-  mongo1:
-    image: mongo:6.0
-    container_name: mongo1
-    hostname: mongo1
-    restart: unless-stopped
-    healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u root -p example --quiet | grep 1
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
-      - MONGO_INITDB_DATABASE=crack_hash
-    command: [ "--config", "/etc/mongodb/mongod.conf" ]
-    volumes:
-      - mongo1_data:/data/db
-      - mongo-keyfile:/etc/mongodb/pki
-      - mongo1-config:/data/configdb
-      - mongo1-logs:/var/log/mongodb
-      - ./config/mongod.conf:/etc/mongodb/mongod.conf
-
-    depends_on:
-      create_mongo_keyfile:
-        condition: service_completed_successfully
-    networks:
-      - crack-hash-net
-
-  mongo2:
-    image: mongo:6.0
-    container_name: mongo2
-    hostname: mongo2
-    restart: unless-stopped
-    healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u root -p example --quiet | grep 1
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
-      - MONGO_INITDB_DATABASE=crack_hash
-    command: [ "--config", "/etc/mongodb/mongod.conf" ]
-    volumes:
-      - mongo2_data:/data/db
-      - mongo-keyfile:/etc/mongodb/pki
-      - mongo2-config:/data/configdb
-      - mongo2-logs:/var/log/mongodb
-      - ./config/mongod.conf:/etc/mongodb/mongod.conf
-
-    depends_on:
-      create_mongo_keyfile:
-        condition: service_completed_successfully
-    networks:
-      - crack-hash-net
-
-  mongo3:
-    image: mongo:6.0
-    container_name: mongo3
-    hostname: mongo3
-    restart: unless-stopped
-    healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u root -p example --quiet | grep 1
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
-      - MONGO_INITDB_DATABASE=crack_hash
-    command: [ "--config", "/etc/mongodb/mongod.conf" ]
-    volumes:
-      - mongo3_data:/data/db
-      - mongo-keyfile:/etc/mongodb/pki
-      - mongo3-config:/data/configdb
-      - mongo3-logs:/var/log/mongodb
-      - ./config/mongod.conf:/etc/mongodb/mongod.conf
-
-    depends_on:
-      create_mongo_keyfile:
-        condition: service_completed_successfully
-    networks:
-      - crack-hash-net
-
-  setup:
-    image: mongo:6.0
-    container_name: setup
-    restart: no
-    depends_on:
-      mongo1:
-        condition: service_healthy
-      mongo2:
-        condition: service_healthy
-      mongo3:
-        condition: service_healthy
-    entrypoint: [ "bash", "setup_repl_set.sh" ]
-    volumes:
-      - ./scripts/setup_repl_set.sh:/setup_repl_set.sh
-    networks:
-      - crack-hash-net
-
   add_to_consul:
     image: curlimages/curl:8.12.1
     container_name: setup_consul
@@ -124,38 +21,6 @@ services:
     entrypoint: [ "bash", "add_to_consul.sh" ]
     volumes:
       - ./scripts/add_to_consul.sh:/add_to_consul.sh
-    networks:
-      - crack-hash-net
-
-  worker:
-    container_name: worker
-    restart: unless-stopped
-    image: worker_image
-    build:
-      dockerfile: DockerfileWorker
-    environment:
-      - MANAGER_URL=http://manager:8080
-    healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:8081/health" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    networks:
-      - crack-hash-net
-
-  manager:
-    container_name: manager
-    restart: unless-stopped
-    image: manager_image
-    build:
-      dockerfile: DockerfileManager
-    environment:
-      - WORKER_URL=http://worker:8081
-    depends_on:
-      worker:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
     networks:
       - crack-hash-net
 
@@ -170,6 +35,13 @@ volumes:
   mongo1-logs:
   mongo2-logs:
   mongo3-logs:
+
+  rabbitmq1-data:
+  rabbitmq2-data:
+  rabbitmq3-data:
+  rabbitmq1-logs:
+  rabbitmq2-logs:
+  rabbitmq3-logs:
 
 networks:
   crack-hash-net:
