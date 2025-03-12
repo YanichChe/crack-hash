@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  manager:
+    container_name: manager
+    restart: unless-stopped
+    image: manager_image
+    build:
+      dockerfile: DockerfileManager
+    ports:
+      - "8080:8080"
+    depends_on:
+      worker:
+        condition: service_healthy
+    networks:
+      - crack-hash-net
