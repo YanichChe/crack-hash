@@ -10,8 +10,6 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.litote.kmongo.KMongo
 import ychernovskaya.crash.hash.Configuration
-import ychernovskaya.crash.hash.api.WorkerApi
-import ychernovskaya.crash.hash.api.WorkerApiImpl
 import ychernovskaya.crash.hash.services.ManagerService
 import ychernovskaya.crash.hash.services.ManagerServiceImpl
 import ychernovskaya.crash.hash.storage.HashStorage
@@ -21,17 +19,12 @@ import java.io.InputStreamReader
 
 fun appModule() = module {
     services()
-    api()
     configuration()
     storage()
 }
 
 private fun Module.services() {
     factoryOf(::ManagerServiceImpl) bind ManagerService::class
-}
-
-private fun Module.api() {
-    factoryOf(::WorkerApiImpl) bind WorkerApi::class
 }
 
 private fun Module.storage() {
@@ -44,14 +37,7 @@ private fun Module.storage() {
 
 private fun Module.configuration() {
     val config = loadConfig()
-
-    val workerUrl = System.getenv("WORKER_URL")
-        ?: config.propertyOrNull("worker.url")?.getString()
-        ?: "worker-url"
-
     val configuration = object : Configuration {
-        override val workerUrl: String
-            get() = workerUrl
     }
     factory<Configuration> { configuration }
 }
