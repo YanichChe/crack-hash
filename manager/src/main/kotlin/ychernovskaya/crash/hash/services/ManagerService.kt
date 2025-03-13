@@ -1,93 +1,95 @@
 package ychernovskaya.crash.hash.services
 
-import co.touchlab.stately.concurrency.AtomicInt
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import org.bson.types.ObjectId
+import org.litote.kmongo.id.toId
 import org.slf4j.LoggerFactory
-import ychernovskaya.crash.hash.Configuration
-import ychernovskaya.crash.hash.HashData
-import ychernovskaya.crash.hash.api.WorkerApi
-import java.util.concurrent.ConcurrentHashMap
+import ychernovskaya.crash.hash.excepton.CallIdAlreadyExistsException
+import ychernovskaya.crash.hash.excepton.NotSuchCallIdException
+import ychernovskaya.crash.hash.model.HashModel
+import ychernovskaya.crash.hash.model.PartInfo
+import ychernovskaya.crash.hash.model.Progress
+import ychernovskaya.crash.hash.storage.HashStorage
 import kotlin.math.pow
 
 interface ManagerService {
-    suspend fun addTask(callId: String, hash: String, maxLength: Int)
-    fun checkResult(callId: String): Result?
-    fun addResult(callId: String, encodedData: List<String>)
+    suspend fun addTask(callId: String, hash: String, maxLength: Int): Result<Boolean>
+    fun checkResult(callId: String): Result<Progress>
+    fun addResult(callId: String, partInfo: PartInfo, encodedData: List<String>): Result<Boolean>
 }
 
 private const val PartCount = 1_000_000
 private val symbols = ('a'..'z').map { it.toString() } + ('0'..'9').map { it.toString() }
 
 class ManagerServiceImpl(
-    private val workerApi: WorkerApi,
-    private val configuration: Configuration
+    private val hashStorage: HashStorage
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
-    private val results: ConcurrentHashMap<String, Result> = ConcurrentHashMap()
 
-    override suspend fun addTask(callId: String, hash: String, maxLength: Int) {
-        if (results.containsKey(callId)) {
-            logger.info("Existing task $callId")
-            return
-        }
-
-        val sequenceSize = calcSize(maxLength)
-        val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
-
-        results.put(
-            callId,
-            Result(
-                data = mutableListOf(),
-                allPartsNumberCount = allPartsNumberCount + 1,
-                currentPartsNumberCount = AtomicInt(0)
+    override suspend fun addTask(callId: String, hash: String, maxLength: Int): Result<Boolean> {
+        return if (hashStorage.findById(callId) !== null) {
+            hashStorage.create(
+                HashModel(
+                    requestId = ObjectId(callId).toId(),
+                    hash = hash,
+                    maxLength = maxLength,
+                    processInfo = generatePartInfoToResult(maxLength)
+                )
             )
-        )
-        logger.info("Task added: $callId")
-        withContext(Dispatchers.IO) {
-            for (i in 0..allPartsNumberCount) {
-                try {
-                    logger.debug("Part Number: ${i.toInt()}")
-                    workerApi.sendEncodeTask(
-                        workerUrl = configuration.workerUrl,
-                        hashData = HashData(hash, maxLength, symbols),
-                        partNumber = i.toInt(),
-                        partCount = PartCount,
-                        requestId = callId
-                    )
-                    logger.info("Encoded data")
-                } catch (e: Exception) {
-                    logger.error("Error processing task: ${e.message}")
-                }
+            logger.info("Task added: $callId")
+            //TODO: add to queue
+            logger.info("End of task")
+            return Result.success(true)
+        } else {
+            return Result.failure(CallIdAlreadyExistsException("Call id already exists"))
+        }
+    }
+
+    override fun checkResult(callId: String): Result<Progress> {
+        hashStorage.findById(callId)
+            ?.let { hashModel ->
+                val results = hashModel.processInfo
+                    .filter { it.value !== null }
+                    .map { it.value!!.toList() }
+                    .toList()
+                    .flatten()
+
+                val total = hashModel.processInfo.keys.size
+                val currentCount = hashModel.processInfo.values.count { it !== null }
+                return Result.success(Progress(currentCount, total, results))
             }
-        }
-        logger.info("End of task")
+            ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
     }
 
-    override fun checkResult(callId: String): Result? {
-        logger.debug("Results data: {}", results)
-        return results[callId]
-    }
-
-    override fun addResult(callId: String, encodedData: List<String>) {
-        results[callId]?.apply {
-            currentPartsNumberCount.incrementAndGet()
-            data.addAll(encodedData)
-        }
-        logger.debug("Result: {}", results[callId])
+    override fun addResult(callId: String, partInfo: PartInfo, encodedData: List<String>): Result<Boolean> {
+        hashStorage.findById(callId)
+            ?.let { hashModel ->
+                hashStorage.updateById(requestId = callId, partInfo = partInfo, encodedData)
+                return Result.success(true)
+            }
+            ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
     }
 }
 
-private fun calcSize(maxLength: Int, symbolsCount: Double = 36.0): Long {
+private fun generatePartInfoToResult(maxLength: Int): Map<PartInfo, MutableList<String>?> {
+    val sequenceSize = calcSize(maxLength)
+    val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
+
+    return buildMap<PartInfo, MutableList<String>?> {
+        for (i in 0..allPartsNumberCount) {
+            put(
+                PartInfo(
+                    partNumber = i.toInt(),
+                    partCount = PartCount
+                ), null
+            )
+        }
+    }
+}
+
+private fun calcSize(maxLength: Int, symbolsCount: Double = symbols.size.toDouble()): Long {
     if (maxLength < 1) return 0
 
     return (1..maxLength).asSequence()
         .map { symbolsCount.pow(it.toDouble()).toLong() }
         .sum()
 }
-
-data class Result(
-    val data: MutableList<String>,
-    val allPartsNumberCount: Int,
-    val currentPartsNumberCount: AtomicInt
-)
