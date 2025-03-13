@@ -27,26 +27,20 @@ fun Route.hash() {
         get("status/{requestId}") {
             call.requestId()
                 ?.let {
-                    managerService.checkResult(it)
-                }
-                ?.let { (data, allPartsNumberCount, currentPartsNumberCount) ->
+                    val result = managerService.checkResult(it)
+
+                    if (result.isFailure) {
+                        call.respond(StatusResponse(status = STATUS.ERROR, data = null))
+                    }
+
+                    val progress = result.getOrNull()!!
                     call.respond(
                         StatusResponse(
-                            status = if (allPartsNumberCount == currentPartsNumberCount.get()) {
-                                STATUS.READY
-                            } else {
-                                STATUS.IN_PROGRESS
-                            },
-                            data = data
+                            status = if (progress.currentCount == progress.total) STATUS.READY else STATUS.IN_PROGRESS,
+                            data = progress.currentResult
                         )
                     )
                 }
-                ?: call.respond(
-                    StatusResponse(
-                        status = STATUS.ERROR,
-                        data = null
-                    )
-                )
         }
 
         post {
