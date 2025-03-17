@@ -1,29 +1,5 @@
 version: '3.8'
 
-services:
-  consul:
-    image: consul:1.15
-    container_name: consul
-    restart: unless-stopped
-    ports:
-      - "8500:8500"
-      - "8600:8600/udp"
-    command: [ "agent", "-server", "-bootstrap-expect=1", "-ui", "-client=0.0.0.0" ]
-    networks:
-      - crack-hash-net
-
-  add_to_consul:
-    image: curlimages/curl:8.12.1
-    container_name: setup_consul
-    depends_on:
-      - consul
-      - setup
-    entrypoint: [ "bash", "add_to_consul.sh" ]
-    volumes:
-      - ./scripts/add_to_consul.sh:/add_to_consul.sh
-    networks:
-      - crack-hash-net
-
 volumes:
   mongo1_data:
   mongo2_data:
