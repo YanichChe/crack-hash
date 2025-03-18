@@ -1,7 +1,5 @@
 package ychernovskaya.crash.hash.services
 
-import org.bson.types.ObjectId
-import org.litote.kmongo.id.toId
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.excepton.CallIdAlreadyExistsException
 import ychernovskaya.crash.hash.excepton.NotSuchCallIdException
@@ -26,10 +24,10 @@ class ManagerServiceImpl(
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
 
     override suspend fun addTask(callId: String, hash: String, maxLength: Int): Result<Boolean> {
-        return if (hashStorage.findById(callId) !== null) {
+        return if (hashStorage.findByRequestId(callId) === null) {
             hashStorage.create(
                 HashModel(
-                    requestId = ObjectId(callId).toId(),
+                    requestId = callId,
                     hash = hash,
                     maxLength = maxLength,
                     processInfo = generatePartInfoToResult(maxLength)
@@ -45,7 +43,7 @@ class ManagerServiceImpl(
     }
 
     override fun checkResult(callId: String): Result<Progress> {
-        hashStorage.findById(callId)
+        hashStorage.findByRequestId(callId)
             ?.let { hashModel ->
                 val results = hashModel.processInfo
                     .filter { it.value !== null }
@@ -61,27 +59,22 @@ class ManagerServiceImpl(
     }
 
     override fun addResult(callId: String, partInfo: PartInfo, encodedData: List<String>): Result<Boolean> {
-        hashStorage.findById(callId)
+        hashStorage.findByRequestId(callId)
             ?.let { hashModel ->
-                hashStorage.updateById(requestId = callId, partInfo = partInfo, encodedData)
+                hashStorage.updateByRequestId(requestId = callId, partInfo = partInfo, encodedData)
                 return Result.success(true)
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
     }
 }
 
-private fun generatePartInfoToResult(maxLength: Int): Map<PartInfo, MutableList<String>?> {
+private fun generatePartInfoToResult(maxLength: Int): Map<String, MutableList<String>?> {
     val sequenceSize = calcSize(maxLength)
     val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
 
-    return buildMap<PartInfo, MutableList<String>?> {
+    return buildMap<String, MutableList<String>?> {
         for (i in 0..allPartsNumberCount) {
-            put(
-                PartInfo(
-                    partNumber = i.toInt(),
-                    partCount = PartCount
-                ), null
-            )
+            put( "${i.toInt()}_${PartCount}", null)
         }
     }
 }

@@ -3,23 +3,20 @@ package ychernovskaya.crash.hash.storage
 import com.mongodb.WriteConcern
 import com.mongodb.client.MongoClient
 import com.mongodb.client.model.Updates
-import org.bson.types.ObjectId
-import org.litote.kmongo.Id
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
-import org.litote.kmongo.id.toId
 import ychernovskaya.crash.hash.model.HashModel
 import ychernovskaya.crash.hash.model.PartInfo
 
 interface HashStorage {
-    fun findById(requestId: String): HashModel?
-    fun updateById(requestId: String, partInfo: PartInfo, result: List<String>): Boolean
+    fun findByRequestId(requestId: String): HashModel?
+    fun updateByRequestId(requestId: String, partInfo: PartInfo, result: List<String>): Boolean
     fun create(hashModel: HashModel): Boolean
-    fun deleteById(requestId: String): Boolean
+    fun deleteByRequestId(requestId: String): Boolean
 }
 
-private const val DatabaseName = "hash"
+private const val DatabaseName = "crack_hash"
 
 class HashStorageImpl(
     mongoClient: MongoClient
@@ -27,19 +24,18 @@ class HashStorageImpl(
     private val database = mongoClient.getDatabase(DatabaseName)
     private val hashCollection = database.getCollection<HashModel>()
 
-    override fun findById(requestId: String): HashModel? {
-        val bsonId: Id<HashModel> = ObjectId(requestId).toId()
-        return hashCollection.findOne(HashModel::requestId eq bsonId)
+    override fun findByRequestId(requestId: String): HashModel? {
+        return hashCollection.findOne(HashModel::requestId eq requestId)
     }
 
-    override fun updateById(requestId: String, partInfo: PartInfo, result: List<String>): Boolean {
+    override fun updateByRequestId(requestId: String, partInfo: PartInfo, result: List<String>): Boolean {
         val collectionWithWriteConcern = hashCollection.withWriteConcern(WriteConcern.MAJORITY)
-        val bsonId: Id<HashModel> = ObjectId(requestId).toId()
+        val partKey = partInfo.toKey()
         val result = collectionWithWriteConcern.updateOne(
-            HashModel::requestId eq bsonId,
-            Updates.pushEach("processInfo.$partInfo", result)
+            HashModel::requestId eq requestId,
+            Updates.pushEach("processInfo.$partKey", result)
         )
-        return result.wasAcknowledged()
+        return result.wasAcknowledged() && result.modifiedCount > 0
     }
 
     override fun create(hashModel: HashModel): Boolean {
@@ -48,10 +44,11 @@ class HashStorageImpl(
         return result.wasAcknowledged()
     }
 
-    override fun deleteById(requestId: String): Boolean {
+    override fun deleteByRequestId(requestId: String): Boolean {
         val collectionWithWriteConcern = hashCollection.withWriteConcern(WriteConcern.MAJORITY)
-        val bsonId: Id<HashModel> = ObjectId(requestId).toId()
-        val result = collectionWithWriteConcern.deleteOne(HashModel::requestId eq bsonId)
-        return result.wasAcknowledged()
+        val result = collectionWithWriteConcern.deleteOne(HashModel::requestId eq requestId)
+        return result.wasAcknowledged() && result.deletedCount > 0
     }
+
+    private fun PartInfo.toKey(): String = "${partNumber}_${partCount}"
 }
