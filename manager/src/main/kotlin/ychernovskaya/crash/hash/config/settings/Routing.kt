@@ -14,7 +14,6 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import ychernovskaya.crash.hash.config.routing.hash
-import ychernovskaya.crash.hash.config.routing.internal
 
 fun Application.configureRouting() {
     install(AutoHeadResponse)
@@ -51,13 +50,6 @@ fun Application.configureRouting() {
 
 fun Routing.configureWebRouting() {
     api()
-    internalApi()
-}
-
-fun Route.internalApi() {
-    route("internal/api") {
-        internal()
-    }
 }
 
 fun Route.api() {
