@@ -12,12 +12,14 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
-import ychernovskaya.crash.hash.RequestId
+import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.model.HashInfo
 import ychernovskaya.crash.hash.model.RequestResponse
 import ychernovskaya.crash.hash.model.STATUS
 import ychernovskaya.crash.hash.model.StatusResponse
 import ychernovskaya.crash.hash.services.ManagerService
+
+private val symbols = ('a'..'z').map { it.toString() } + ('0'..'9').map { it.toString() }
 
 fun Route.hash() {
     val managerService by application.inject<ManagerService>()
@@ -49,8 +51,11 @@ fun Route.hash() {
                 ?.let { callId ->
                     managerService.addTask(
                         callId = callId,
-                        hash = hashInfo.hash,
-                        maxLength = hashInfo.maxLength
+                        hashData = HashData(
+                            hash = hashInfo.hash,
+                            maxLength = hashInfo.maxLength,
+                            symbols = symbols
+                        )
                     )
                     call.respond(RequestResponse(callId))
                 }
@@ -59,6 +64,6 @@ fun Route.hash() {
     }
 }
 
-private fun ApplicationCall.requestId(): RequestId? {
+private fun ApplicationCall.requestId(): String? {
     return parameters["requestId"]
 }
