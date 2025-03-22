@@ -17,14 +17,14 @@ import kotlin.math.pow
 interface ManagerService {
     suspend fun addTask(callId: String, hashData: HashData): Result<Boolean>
     fun checkResult(callId: String): Result<Progress>
-    fun addResult(callId: String, partInfo: PartInfo, encodedData: List<String>): Result<Boolean>
+    fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean>
 }
 
 private const val PartCount = 1_000_000
 
 class ManagerServiceImpl(
     private val hashStorage: HashStorage,
-    private val senderTaskServer: SenderTaskServer,
+    private val senderTaskService: SenderTaskService,
     private val xmlMapper: XmlMapper
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
@@ -58,7 +58,7 @@ class ManagerServiceImpl(
                         hash = hashData.hash
                         maxLength = hashData.maxLength
                     }
-                    senderTaskServer.send(xmlMapper.writeValueAsBytes(message))
+                    senderTaskService.send(xmlMapper.writeValueAsBytes(message))
 
                     logger.info("Encoded data")
                 }
@@ -88,10 +88,10 @@ class ManagerServiceImpl(
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
     }
 
-    override fun addResult(callId: String, partInfo: PartInfo, encodedData: List<String>): Result<Boolean> {
+    override fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean> {
         hashStorage.findByRequestId(callId)
             ?.let { hashModel ->
-                hashStorage.updateByRequestId(requestId = callId, partInfo = partInfo, encodedData)
+                hashStorage.updateByRequestId(requestId = callId, partInfo = PartInfo(partNumber, PartCount), encodedData)
                 return Result.success(true)
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))

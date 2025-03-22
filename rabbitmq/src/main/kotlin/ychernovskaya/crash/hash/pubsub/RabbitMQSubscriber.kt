@@ -4,6 +4,7 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
+import java.lang.Exception
 
 data class SubscriberContext(
     val queueName: String,
@@ -12,7 +13,7 @@ data class SubscriberContext(
 )
 
 interface RabbitMQSubscriber {
-    suspend fun subscribe()
+    suspend fun subscribe(callBack: (message: ByteArray) -> Unit)
 }
 
 class RabbitMQSubscriberImpl(
@@ -22,7 +23,7 @@ class RabbitMQSubscriberImpl(
     var channel = connection.createChannel()
 
     val autoAck = false
-    override suspend fun subscribe() {
+    override suspend fun subscribe(callBack: (message: ByteArray) -> Unit) {
         channel.basicConsume(subscriberContext.queueName, autoAck, subscriberContext.consumerTag,
             object : DefaultConsumer(channel) {
                 override fun handleDelivery(
@@ -35,7 +36,12 @@ class RabbitMQSubscriberImpl(
                     val deliveryTag = envelope.deliveryTag
 
                     if (subscriberContext.routingKey == routingKey) {
-                        channel.basicAck(deliveryTag, false)
+                        try {
+                            callBack(body)
+                            channel.basicAck(deliveryTag, false)
+                        } catch (_: Exception) {
+                            channel.basicReject(deliveryTag, false)
+                        }
                     } else {
                         channel.basicNack(deliveryTag, false, true)
                     }

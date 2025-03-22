@@ -7,15 +7,23 @@ import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.HoconApplicationConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.litote.kmongo.KMongo
 import ychernovskaya.crash.hash.MongoConfiguration
+import ychernovskaya.crash.hash.pubsub.PublishContext
+import ychernovskaya.crash.hash.pubsub.RabbitMQPublisher
+import ychernovskaya.crash.hash.pubsub.RabbitMQPublisherImpl
+import ychernovskaya.crash.hash.pubsub.RabbitMQSubscriber
+import ychernovskaya.crash.hash.pubsub.RabbitMQSubscriberImpl
+import ychernovskaya.crash.hash.pubsub.SubscriberContext
 import ychernovskaya.crash.hash.rabbitMQModule
 import ychernovskaya.crash.hash.services.ManagerService
 import ychernovskaya.crash.hash.services.ManagerServiceImpl
-import ychernovskaya.crash.hash.services.SenderTaskServer
-import ychernovskaya.crash.hash.services.SenderTaskServerImpl
+import ychernovskaya.crash.hash.services.ProcessMessage
+import ychernovskaya.crash.hash.services.SenderTaskService
+import ychernovskaya.crash.hash.services.SenderTaskServiceImpl
 import ychernovskaya.crash.hash.storage.HashStorage
 import ychernovskaya.crash.hash.storage.HashStorageImpl
 import java.io.BufferedReader
@@ -25,12 +33,33 @@ import kotlin.text.toInt
 fun appModule() = module {
     services()
     storage()
+    queue()
     rabbitMQModule()
 }
 
+private fun Module.queue() {
+    single {
+        PublishContext(
+            exchange = "crash-hash-exchange",
+            routingKey = "add-task-routing-key"
+        )
+    } bind PublishContext::class
+
+    single {
+        SubscriberContext(
+            queueName = "encoded-queue",
+            consumerTag = "manager",
+            routingKey = "encoded-routing-key"
+        )
+    } bind SubscriberContext::class
+
+    factoryOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
+    factoryOf(::RabbitMQSubscriberImpl) bind RabbitMQSubscriber::class
+}
 private fun Module.services() {
     factoryOf(::ManagerServiceImpl) bind ManagerService::class
-    factoryOf(::SenderTaskServerImpl) bind SenderTaskServer::class
+    factoryOf(::SenderTaskServiceImpl) bind SenderTaskService::class
+    singleOf(::ProcessMessage)
     single { XmlMapper() } bind XmlMapper::class
 }
 
