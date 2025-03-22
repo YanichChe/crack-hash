@@ -2,10 +2,10 @@ package ychernovskaya.crash.hash.services
 
 import ychernovskaya.crash.hash.pubsub.RabbitMQPublisher
 
-interface SenderTaskServer {
+interface SenderTaskService {
     suspend fun send(message: ByteArray)
 }
-class SenderTaskServerImpl(private val rabbitMQPublisher: RabbitMQPublisher) : SenderTaskServer {
+class SenderTaskServiceImpl(private val rabbitMQPublisher: RabbitMQPublisher) : SenderTaskService {
     override suspend fun send(message: ByteArray) {
         rabbitMQPublisher.publish(message)
     }
