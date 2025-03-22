@@ -46,9 +46,7 @@ log.exchange.level = info
 ## Cluster settings
 ## ==============================
 
-cluster_formation.classic_config.nodes.1 = rabbitmq@rabbitmq1
-cluster_formation.classic_config.nodes.2 = rabbitmq@rabbitmq2
-cluster_formation.classic_config.nodes.3 = rabbitmq@rabbitmq3
+cluster_formation.classic_config.nodes.1 = rabbitmq@rabbitmq
 
 # =======================================
 # Management section
