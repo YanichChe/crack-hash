@@ -1,7 +1,7 @@
 package ychernovskaya.crash.hash
 
 interface RabbitMQPublisher {
-    suspend fun publish(message: String)
+    suspend fun publish(message: ByteArray)
 }
 
 data class PublishContext(
@@ -10,12 +10,15 @@ data class PublishContext(
 )
 
 class RabbitMQPublisherImpl(
-    private val publishContext: PublishContext,
-    private val connection: com.rabbitmq.client.Connection
-) : RabbitMQPublisher {
+    private val publishContext: PublishContext, connection: com.rabbitmq.client.Connection) : RabbitMQPublisher {
     var channel = connection.createChannel()
 
-    override suspend fun publish(message: String) {
-        channel.basicPublish(publishContext.exchange, publishContext.routingKey, null, message.encodeToByteArray());
+    override suspend fun publish(message: ByteArray) {
+        channel.basicPublish(
+            publishContext.exchange,
+            publishContext.routingKey,
+            null,
+            message
+        )
     }
 }
