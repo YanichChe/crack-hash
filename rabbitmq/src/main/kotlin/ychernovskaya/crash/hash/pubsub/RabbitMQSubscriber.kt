@@ -1,6 +1,7 @@
-package ychernovskaya.crash.hash
+package ychernovskaya.crash.hash.pubsub
 
 import com.rabbitmq.client.AMQP
+import com.rabbitmq.client.Connection
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 
@@ -16,11 +17,11 @@ interface RabbitMQSubscriber {
 
 class RabbitMQSubscriberImpl(
     private val subscriberContext: SubscriberContext,
-    private val connection: com.rabbitmq.client.Connection
+    connection: Connection
 ) : RabbitMQSubscriber {
     var channel = connection.createChannel()
 
-    val autoAck = false;
+    val autoAck = false
     override suspend fun subscribe() {
         channel.basicConsume(subscriberContext.queueName, autoAck, subscriberContext.consumerTag,
             object : DefaultConsumer(channel) {

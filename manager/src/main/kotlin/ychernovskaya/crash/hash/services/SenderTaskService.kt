@@ -1,6 +1,6 @@
 package ychernovskaya.crash.hash.services
 
-import ychernovskaya.crash.hash.RabbitMQPublisher
+import ychernovskaya.crash.hash.pubsub.RabbitMQPublisher
 
 interface SenderTaskServer {
     suspend fun send(message: ByteArray)
