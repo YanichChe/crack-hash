@@ -10,7 +10,6 @@ import org.paukov.combinatorics3.Generator
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.Configuration
 import ychernovskaya.crash.hash.HashData
-import ychernovskaya.crash.hash.api.ManagerApi
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 
@@ -19,7 +18,6 @@ interface WorkerService {
 }
 
 class WorkerServiceImpl(
-    private val managerApi: ManagerApi,
     private val configuration: Configuration
 ) : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
@@ -52,12 +50,12 @@ class WorkerServiceImpl(
                     }
                 }
             }
-            managerApi.sentEncodedData(
+            /*managerApi.sentEncodedData(
                 managerUrl = configuration.managerUrl,
                 requestId = requestId,
                 partNumber = partNumber,
                 encodedData = resultMap.get(requestId)!!
-            )
+            )*/
         }
 
         return true
