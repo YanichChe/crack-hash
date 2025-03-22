@@ -5,5 +5,3 @@ data class HashData(
     val maxLength: Int,
     val symbols: List<String>
 )
-
-typealias RequestId = String

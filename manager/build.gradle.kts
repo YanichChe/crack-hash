@@ -3,6 +3,7 @@ val koin_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val kmongo_version: String by project
+val rabbitmq_version: String by project
 
 plugins {
     kotlin("jvm") version "2.1.10"
@@ -52,9 +53,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-xml:$ktor_version")
     implementation("io.ktor:ktor-serialization-jackson:2.3.5")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
+    implementation("com.rabbitmq:amqp-client:$rabbitmq_version")
 
     implementation(project(":model"))
-
+    implementation(project(":rabbitmq"))
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 

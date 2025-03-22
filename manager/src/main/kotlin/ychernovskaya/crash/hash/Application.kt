@@ -23,4 +23,5 @@ fun Application.module() {
     configureFrameworks()
     configureAdministration()
     configureRouting()
+    configureRabbitMQ()
 }

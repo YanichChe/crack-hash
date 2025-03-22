@@ -29,6 +29,8 @@ services:
       - mongo1-config:/data/configdb
       - mongo1-logs:/var/log/mongodb
       - ./config/mongod.conf:/etc/mongodb/mongod.conf
+    ports:
+      - '27017:27017'
     depends_on:
       create_mongo_keyfile:
         condition: service_completed_successfully
@@ -53,7 +55,8 @@ services:
       - mongo2-config:/data/configdb
       - mongo2-logs:/var/log/mongodb
       - ./config/mongod.conf:/etc/mongodb/mongod.conf
-
+    ports:
+      - '27018:27017'
     depends_on:
       create_mongo_keyfile:
         condition: service_completed_successfully
@@ -78,6 +81,8 @@ services:
       - mongo3-config:/data/configdb
       - mongo3-logs:/var/log/mongodb
       - ./config/mongod.conf:/etc/mongodb/mongod.conf
+    ports:
+      - '27019:27017'
     depends_on:
       create_mongo_keyfile:
         condition: service_completed_successfully
@@ -120,23 +125,6 @@ services:
     networks:
       - crack-hash-net
 
-  manager:
-    container_name: manager
-    restart: unless-stopped
-    image: manager_image
-    build:
-      dockerfile: DockerfileManager
-    ports:
-      - "8081:8080"
-    depends_on:
-      mongo1:
-        condition: service_healthy
-      mongo2:
-        condition: service_healthy
-      mongo3:
-        condition: service_healthy
-    networks:
-      - crack-hash-net
 volumes:
   mongo1_data:
   mongo2_data:

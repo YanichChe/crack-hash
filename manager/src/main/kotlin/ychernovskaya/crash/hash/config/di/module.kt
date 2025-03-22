@@ -1,7 +1,9 @@
 package ychernovskaya.crash.hash.config.di
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.mongodb.ConnectionString
 import com.mongodb.client.MongoClient
+import com.rabbitmq.client.Connection
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.HoconApplicationConfig
 import org.koin.core.module.Module
@@ -9,9 +11,15 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.litote.kmongo.KMongo
-import ychernovskaya.crash.hash.Configuration
+import ychernovskaya.crash.hash.MongoConfiguration
+import ychernovskaya.crash.hash.PublishContext
+import ychernovskaya.crash.hash.RabbitMQConnection
+import ychernovskaya.crash.hash.RabbitMQPublisher
+import ychernovskaya.crash.hash.RabbitMQPublisherImpl
 import ychernovskaya.crash.hash.services.ManagerService
 import ychernovskaya.crash.hash.services.ManagerServiceImpl
+import ychernovskaya.crash.hash.services.SenderTaskServer
+import ychernovskaya.crash.hash.services.SenderTaskServerImpl
 import ychernovskaya.crash.hash.storage.HashStorage
 import ychernovskaya.crash.hash.storage.HashStorageImpl
 import java.io.BufferedReader
@@ -21,26 +29,43 @@ import kotlin.text.toInt
 fun appModule() = module {
     services()
     storage()
+    queue()
 }
 
 private fun Module.services() {
     factoryOf(::ManagerServiceImpl) bind ManagerService::class
+    factoryOf(::SenderTaskServerImpl) bind SenderTaskServer::class
+    single { XmlMapper() } bind XmlMapper::class
 }
 
 private fun Module.storage() {
     val configuration = loadConfiguration()
     val connectionString = ConnectionString(configuration.getUrl())
     val client = KMongo.createClient(connectionString)
-    single { client } bind MongoClient::class
 
+    single { client } bind MongoClient::class
     factoryOf(::HashStorageImpl) bind HashStorage::class
 }
 
-private fun Configuration.getUrl(): String {
+private fun Module.queue() {
+    val rabbitMQConnection = RabbitMQConnection()
+    single { rabbitMQConnection.getConnection() } bind Connection::class
+
+    single {
+        PublishContext(
+            exchange = "crash-hash-exchange",
+            routingKey = "add-task-routing-key"
+        )
+    } bind PublishContext::class
+
+    factoryOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
+}
+
+private fun MongoConfiguration.getUrl(): String {
     return "mongodb://${mongoLogin}:${mongoPassword}@${mongoHost}:${mongoPort}/?authSource=admin"
 }
 
-private fun loadConfiguration(): Configuration {
+private fun loadConfiguration(): MongoConfiguration {
     val config = loadConfig()
 
     val mongoLogin =
@@ -63,7 +88,7 @@ private fun loadConfiguration(): Configuration {
             ?.getString()
             ?: System.getenv("MONGO_HOST")
 
-    return object : Configuration {
+    return object : MongoConfiguration {
         override val mongoLogin: String
             get() = mongoLogin
         override val mongoPassword: String
