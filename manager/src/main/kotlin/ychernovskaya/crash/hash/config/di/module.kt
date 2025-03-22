@@ -3,7 +3,6 @@ package ychernovskaya.crash.hash.config.di
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.mongodb.ConnectionString
 import com.mongodb.client.MongoClient
-import com.rabbitmq.client.Connection
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.HoconApplicationConfig
 import org.koin.core.module.Module
@@ -12,10 +11,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.litote.kmongo.KMongo
 import ychernovskaya.crash.hash.MongoConfiguration
-import ychernovskaya.crash.hash.PublishContext
-import ychernovskaya.crash.hash.RabbitMQConnection
-import ychernovskaya.crash.hash.RabbitMQPublisher
-import ychernovskaya.crash.hash.RabbitMQPublisherImpl
+import ychernovskaya.crash.hash.rabbitMQModule
 import ychernovskaya.crash.hash.services.ManagerService
 import ychernovskaya.crash.hash.services.ManagerServiceImpl
 import ychernovskaya.crash.hash.services.SenderTaskServer
@@ -29,7 +25,7 @@ import kotlin.text.toInt
 fun appModule() = module {
     services()
     storage()
-    queue()
+    rabbitMQModule()
 }
 
 private fun Module.services() {
@@ -45,20 +41,6 @@ private fun Module.storage() {
 
     single { client } bind MongoClient::class
     factoryOf(::HashStorageImpl) bind HashStorage::class
-}
-
-private fun Module.queue() {
-    val rabbitMQConnection = RabbitMQConnection()
-    single { rabbitMQConnection.getConnection() } bind Connection::class
-
-    single {
-        PublishContext(
-            exchange = "crash-hash-exchange",
-            routingKey = "add-task-routing-key"
-        )
-    } bind PublishContext::class
-
-    factoryOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
 }
 
 private fun MongoConfiguration.getUrl(): String {

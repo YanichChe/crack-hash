@@ -1,4 +1,6 @@
-package ychernovskaya.crash.hash
+package ychernovskaya.crash.hash.pubsub
+
+import com.rabbitmq.client.Connection
 
 interface RabbitMQPublisher {
     suspend fun publish(message: ByteArray)
@@ -10,7 +12,8 @@ data class PublishContext(
 )
 
 class RabbitMQPublisherImpl(
-    private val publishContext: PublishContext, connection: com.rabbitmq.client.Connection) : RabbitMQPublisher {
+    private val publishContext: PublishContext, connection: Connection
+) : RabbitMQPublisher {
     var channel = connection.createChannel()
 
     override suspend fun publish(message: ByteArray) {
