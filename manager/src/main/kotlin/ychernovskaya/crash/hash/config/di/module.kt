@@ -13,10 +13,6 @@ import org.koin.dsl.module
 import org.litote.kmongo.KMongo
 import ychernovskaya.crash.hash.MongoConfiguration
 import ychernovskaya.crash.hash.pubsub.PublishContext
-import ychernovskaya.crash.hash.pubsub.RabbitMQPublisher
-import ychernovskaya.crash.hash.pubsub.RabbitMQPublisherImpl
-import ychernovskaya.crash.hash.pubsub.RabbitMQSubscriber
-import ychernovskaya.crash.hash.pubsub.RabbitMQSubscriberImpl
 import ychernovskaya.crash.hash.pubsub.SubscriberContext
 import ychernovskaya.crash.hash.rabbitMQModule
 import ychernovskaya.crash.hash.services.ManagerService
@@ -31,10 +27,10 @@ import java.io.InputStreamReader
 import kotlin.text.toInt
 
 fun appModule() = module {
+    includes(rabbitMQModule())
     services()
     storage()
     queue()
-    rabbitMQModule()
 }
 
 private fun Module.queue() {
@@ -52,9 +48,6 @@ private fun Module.queue() {
             routingKey = "encoded-routing-key"
         )
     } bind SubscriberContext::class
-
-    factoryOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
-    factoryOf(::RabbitMQSubscriberImpl) bind RabbitMQSubscriber::class
 }
 private fun Module.services() {
     factoryOf(::ManagerServiceImpl) bind ManagerService::class

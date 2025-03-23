@@ -15,7 +15,6 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import ychernovskaya.crash.hash.pubsub.PublishContext
 import ychernovskaya.crash.hash.pubsub.RabbitMQPublisher
 import ychernovskaya.crash.hash.pubsub.RabbitMQPublisherImpl
 import ychernovskaya.crash.hash.pubsub.RabbitMQSubscriber
@@ -25,16 +24,10 @@ import java.io.InputStreamReader
 
 fun rabbitMQModule(): Module = module {
     val configuration = loadConfiguration()
-
     val rabbitMQConnection = RabbitMQConnection(configuration)
-    single { rabbitMQConnection.getConnection() } bind Connection::class
 
-    single {
-        PublishContext(
-            exchange = "crash-hash-exchange",
-            routingKey = "add-task-routing-key"
-        )
-    } bind PublishContext::class
+    single { rabbitMQConnection.getConnection() } bind Connection::class
+    single {configuration } bind RabbitMQConfiguration::class
 
     factoryOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
     factoryOf(::RabbitMQSubscriberImpl) bind RabbitMQSubscriber::class
@@ -48,6 +41,7 @@ internal class RabbitMQConnection(configuration: RabbitMQConfiguration) {
             host = configuration.host
             port = configuration.port
             isAutomaticRecoveryEnabled = true
+            requestedHeartbeat = 180
             setNetworkRecoveryInterval(10000)
         }
 
