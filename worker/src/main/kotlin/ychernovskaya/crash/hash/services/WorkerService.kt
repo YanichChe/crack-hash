@@ -58,7 +58,9 @@ class WorkerServiceImpl(
             val encodedDataMessage = CrackHashWorkerResponse()
             encodedDataMessage.requestId = callId
             encodedDataMessage.partNumber = partNumber
-            encodedDataMessage.answers.words.addAll(resultMap.get(callId)!!)
+            encodedDataMessage.answers = CrackHashWorkerResponse.Answers().apply {
+                words.addAll(resultMap.get(callId)!!)
+            }
 
             senderEncodedDataService.send(xmlMapper.writeValueAsBytes(encodedDataMessage))
             logger.debug("Finished encoding task with result {}", resultMap.get(callId))
