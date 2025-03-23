@@ -52,7 +52,7 @@ private fun Module.queue() {
 private fun Module.services() {
     factoryOf(::ManagerServiceImpl) bind ManagerService::class
     factoryOf(::SenderTaskServiceImpl) bind SenderTaskService::class
-    singleOf(::ProcessMessage)
+    single { ProcessMessage(get(), get(), get()) }
     single { XmlMapper() } bind XmlMapper::class
 }
 

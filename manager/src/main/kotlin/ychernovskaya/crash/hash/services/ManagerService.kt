@@ -46,9 +46,9 @@ class ManagerServiceImpl(
 
             val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
 
+            logger.debug("Total count: $allPartsNumberCount")
             withContext(Dispatchers.IO) {
                 for (i in 0..allPartsNumberCount) {
-
                     logger.debug("Part Number: ${i.toInt()}")
 
                     val message = CrackHashManagerRequest().apply {
@@ -57,9 +57,12 @@ class ManagerServiceImpl(
                         partCount = PartCount
                         hash = hashData.hash
                         maxLength = hashData.maxLength
+                        alphabet = CrackHashManagerRequest.Alphabet().apply {
+                            symbols.addAll(hashData.symbols)
+                        }
                     }
-                    senderTaskService.send(xmlMapper.writeValueAsBytes(message))
 
+                    senderTaskService.send(xmlMapper.writeValueAsBytes(message))
                     logger.info("Encoded data")
                 }
                 logger.info("End of task")
@@ -91,7 +94,11 @@ class ManagerServiceImpl(
     override fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean> {
         hashStorage.findByRequestId(callId)
             ?.let { hashModel ->
-                hashStorage.updateByRequestId(requestId = callId, partInfo = PartInfo(partNumber, PartCount), encodedData)
+                hashStorage.updateByRequestId(
+                    requestId = callId,
+                    partInfo = PartInfo(partNumber, PartCount),
+                    encodedData
+                )
                 return Result.success(true)
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
@@ -103,7 +110,7 @@ private fun generatePartInfoToResult(maxLength: Int, symbolsCount: Long): Map<St
     val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
 
     return buildMap<String, MutableList<String>?> {
-        for (i in 0..allPartsNumberCount) {
+        for (i in 0..allPartsNumberCount - 1) {
             put("${i.toInt()}_${PartCount}", null)
         }
     }

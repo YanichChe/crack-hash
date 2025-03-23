@@ -31,9 +31,10 @@ class HashStorageImpl(
     override fun updateByRequestId(requestId: String, partInfo: PartInfo, result: List<String>): Boolean {
         val collectionWithWriteConcern = hashCollection.withWriteConcern(WriteConcern.MAJORITY)
         val partKey = partInfo.toKey()
+
         val result = collectionWithWriteConcern.updateOne(
             HashModel::requestId eq requestId,
-            Updates.pushEach("processInfo.$partKey", result)
+            Updates.set("processInfo.$partKey", result)
         )
         return result.wasAcknowledged() && result.modifiedCount > 0
     }
