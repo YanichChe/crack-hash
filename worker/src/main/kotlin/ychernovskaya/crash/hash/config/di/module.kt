@@ -9,6 +9,8 @@ import ychernovskaya.crash.hash.pubsub.PublishContext
 import ychernovskaya.crash.hash.pubsub.SubscriberContext
 import ychernovskaya.crash.hash.rabbitMQModule
 import ychernovskaya.crash.hash.services.ProcessMessage
+import ychernovskaya.crash.hash.services.SenderEncodedDataService
+import ychernovskaya.crash.hash.services.SenderEncodedDataServiceImpl
 import ychernovskaya.crash.hash.services.WorkerService
 import ychernovskaya.crash.hash.services.WorkerServiceImpl
 
@@ -37,6 +39,7 @@ private fun Module.queue() {
 
 private fun Module.services() {
     factoryOf(::WorkerServiceImpl) bind WorkerService::class
+    factoryOf(::SenderEncodedDataServiceImpl) bind SenderEncodedDataService::class
     single { XmlMapper() } bind XmlMapper::class
     single { ProcessMessage(get(), get(), get()) }
 }
