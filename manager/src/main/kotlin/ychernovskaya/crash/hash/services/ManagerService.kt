@@ -32,21 +32,21 @@ class ManagerServiceImpl(
     override suspend fun addTask(callId: String, hashData: HashData): Result<Boolean> {
         return if (hashStorage.findByRequestId(callId) === null) {
             val sequenceSize = calcSize(hashData.maxLength, hashData.symbols.size.toDouble())
+            val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
+
+            logger.info("Total count: $allPartsNumberCount")
+            logger.info("Sequence size: $sequenceSize")
 
             hashStorage.create(
                 HashModel(
                     requestId = callId,
                     hash = hashData.hash,
                     maxLength = hashData.maxLength,
-                    processInfo = generatePartInfoToResult(hashData.maxLength, sequenceSize)
+                    processInfo = generatePartInfoToResult(hashData.maxLength, hashData.symbols.size)
                 )
             )
             logger.info("Task added: $callId")
 
-
-            val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
-
-            logger.debug("Total count: $allPartsNumberCount")
             withContext(Dispatchers.IO) {
                 for (i in 0..allPartsNumberCount) {
                     logger.debug("Part Number: ${i.toInt()}")
@@ -105,12 +105,12 @@ class ManagerServiceImpl(
     }
 }
 
-private fun generatePartInfoToResult(maxLength: Int, symbolsCount: Long): Map<String, MutableList<String>?> {
+private fun generatePartInfoToResult(maxLength: Int, symbolsCount: Int): Map<String, MutableList<String>?> {
     val sequenceSize = calcSize(maxLength, symbolsCount.toDouble())
     val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
 
     return buildMap<String, MutableList<String>?> {
-        for (i in 0..allPartsNumberCount - 1) {
+        for (i in 0..allPartsNumberCount) {
             put("${i.toInt()}_${PartCount}", null)
         }
     }
