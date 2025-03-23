@@ -8,7 +8,6 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import org.paukov.combinatorics3.Generator
 import org.slf4j.LoggerFactory
-import ychernovskaya.crash.hash.Configuration
 import ychernovskaya.crash.hash.HashData
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
@@ -17,9 +16,7 @@ interface WorkerService {
     fun addEncodeHashTask(hashData: HashData, requestId: String, partNumber: Int, partCount: Int): Boolean
 }
 
-class WorkerServiceImpl(
-    private val configuration: Configuration
-) : WorkerService {
+class WorkerServiceImpl() : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
     var resultMap = ConcurrentHashMap<String, MutableList<String>>()
 
@@ -50,12 +47,10 @@ class WorkerServiceImpl(
                     }
                 }
             }
-            /*managerApi.sentEncodedData(
-                managerUrl = configuration.managerUrl,
-                requestId = requestId,
-                partNumber = partNumber,
-                encodedData = resultMap.get(requestId)!!
-            )*/
+            //TODO add sent to queue
+            logger.debug("Finished encoding task with result {}", resultMap.get(requestId))
+
+            resultMap.remove(requestId)
         }
 
         return true
