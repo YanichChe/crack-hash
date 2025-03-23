@@ -12,11 +12,11 @@ class ProcessMessage(
     private val xmlMapper: XmlMapper,
     private val managerService: ManagerService
 ) {
-    init {
+    fun start() {
         CoroutineScope(Dispatchers.Default).launch {
             rabbitMQSubscriber.subscribe { message ->
                 val response = xmlMapper.readValue(message, CrackHashWorkerResponse::class.java)
-                println(response)
+
                 managerService.addResult(
                     callId = response.requestId,
                     partNumber = response.partNumber,
