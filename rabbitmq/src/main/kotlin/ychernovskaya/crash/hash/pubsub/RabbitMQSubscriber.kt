@@ -4,6 +4,7 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
+import org.slf4j.LoggerFactory
 import java.lang.Exception
 
 data class SubscriberContext(
@@ -20,8 +21,9 @@ class RabbitMQSubscriberImpl(
     private val subscriberContext: SubscriberContext,
     connection: Connection
 ) : RabbitMQSubscriber {
-    var channel = connection.createChannel()
+    val logger = LoggerFactory.getLogger(RabbitMQSubscriberImpl::class.java)
 
+    var channel = connection.createChannel()
     val autoAck = false
     override suspend fun subscribe(callBack: (message: ByteArray) -> Unit) {
         channel.basicConsume(subscriberContext.queueName, autoAck, subscriberContext.consumerTag,
@@ -34,12 +36,14 @@ class RabbitMQSubscriberImpl(
                 ) {
                     val routingKey = envelope.routingKey
                     val deliveryTag = envelope.deliveryTag
+                    logger.info("$routingKey ${subscriberContext.routingKey}")
 
                     if (subscriberContext.routingKey == routingKey) {
                         try {
                             callBack(body)
                             channel.basicAck(deliveryTag, false)
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            logger.info(e.message)
                             channel.basicReject(deliveryTag, false)
                         }
                     } else {
