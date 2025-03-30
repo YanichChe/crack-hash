@@ -6,7 +6,7 @@ import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import ychernovskaya.crash.hash.model.HashInfo
 
-private const val MaxLengthValue = 100
+private const val MaxLengthValue = 6
 private const val MinLengthValue = 0
 
 fun Application.configureValidation() {
