@@ -88,7 +88,8 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             autoDelete = false
             arguments = mapOf(
                 "x-dead-letter-exchange" to "dlx",
-                "x-dead-letter-routing-key" to "dlq-dlx"
+                "x-dead-letter-routing-key" to "dlq-dlx",
+                "x-consumer-timeout" to "60000"
             )
         }
 
@@ -99,7 +100,8 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             autoDelete = false
             arguments = mapOf(
                 "x-dead-letter-exchange" to "dlx",
-                "x-dead-letter-routing-key" to "dlq-dlx"
+                "x-dead-letter-routing-key" to "dlq-dlx",
+                "x-consumer-timeout" to "60000"
             )
         }
 
