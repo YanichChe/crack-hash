@@ -2,6 +2,7 @@ package ychernovskaya.crack.hash.storage
 
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
+import java.time.Instant
 
 enum class Status {
     Created, Pending, End, Error
@@ -12,6 +13,7 @@ data class HashModel(
     val requestId: String,
     val hash: String,
     val maxLength: Int,
+    val symbols: List<String>,
 )
 
 data class ProcessInfo (
@@ -19,5 +21,6 @@ data class ProcessInfo (
     val requestId: String,
     val partNumber: Int,
     val result: MutableList<String>?,
-    val status: Status
+    val status: Status,
+    val createdAt: Instant? = Instant.now(),
 )

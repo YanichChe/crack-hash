@@ -7,6 +7,7 @@ import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 import ychernovskaya.crash.hash.config.di.appModule
+import ychernovskaya.crash.hash.services.PeriodicTask
 import ychernovskaya.crash.hash.services.ProcessMessage
 import kotlin.getValue
 
@@ -18,6 +19,9 @@ fun Application.configureFrameworks() {
 
     environment.monitor.subscribe(ApplicationStarted) {
         val processMessage: ProcessMessage by inject()
+        val periodicTask: PeriodicTask by inject()
+
         processMessage.start()
+        periodicTask.start()
     }
 }

@@ -11,6 +11,7 @@ import ychernovskaya.crash.hash.pubsub.SubscriberContext
 import ychernovskaya.crash.hash.rabbitMQModule
 import ychernovskaya.crash.hash.services.ManagerService
 import ychernovskaya.crash.hash.services.ManagerServiceImpl
+import ychernovskaya.crash.hash.services.PeriodicTask
 import ychernovskaya.crash.hash.services.ProcessMessage
 import ychernovskaya.crash.hash.services.SenderTaskService
 import ychernovskaya.crash.hash.services.SenderTaskServiceImpl
@@ -42,5 +43,6 @@ private fun Module.services() {
     factoryOf(::ManagerServiceImpl) bind ManagerService::class
     factoryOf(::SenderTaskServiceImpl) bind SenderTaskService::class
     single { ProcessMessage(get(), get(), get()) }
+    single { PeriodicTask(get(), get(), get()) }
     single { XmlMapper() } bind XmlMapper::class
 }

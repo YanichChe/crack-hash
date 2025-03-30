@@ -7,6 +7,10 @@ import org.litote.kmongo.and
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
+import org.litote.kmongo.lt
+import org.litote.kmongo.or
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 interface ProcessInfoStorage {
     fun findByRequestIdAndPartNumber(requestId: String, partNumber: Int): ProcessInfo?
@@ -15,6 +19,7 @@ interface ProcessInfoStorage {
     fun create(processInfo: ProcessInfo): Boolean
     fun deleteByHashRequestId(requestId: String): Boolean
     fun findAllByHashRequestId(requestId: String): List<ProcessInfo>
+    fun getNotStartedTasks(): List<ProcessInfo>
 }
 
 private const val DatabaseName = "process_info"
@@ -86,5 +91,14 @@ class ProcessInfoStorageImpl(mongoClient: MongoClient) : ProcessInfoStorage {
 
     override fun findAllByHashRequestId(requestId: String): List<ProcessInfo> {
         return processInfoCollection.find(ProcessInfo::requestId eq requestId).toList()
+    }
+
+    override fun getNotStartedTasks(): List<ProcessInfo> {
+        val timeCondition = ProcessInfo::createdAt lt Instant.now().minus(5, ChronoUnit.MINUTES)
+        val statusCondition = or(ProcessInfo::status eq Status.Created, ProcessInfo::status eq Status.Pending)
+
+        val query = and(timeCondition, statusCondition)
+
+        return processInfoCollection.find(query).toList()
     }
 }

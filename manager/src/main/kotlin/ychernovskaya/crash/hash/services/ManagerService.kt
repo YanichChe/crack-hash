@@ -46,6 +46,7 @@ class ManagerServiceImpl(
                     requestId = callId,
                     hash = hashData.hash,
                     maxLength = hashData.maxLength,
+                    symbols = hashData.symbols,
                 )
             )
 
