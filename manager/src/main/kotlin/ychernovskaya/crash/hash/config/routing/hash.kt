@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.model.HashInfo
 import ychernovskaya.crash.hash.model.RequestResponse
-import ychernovskaya.crash.hash.model.STATUS
+import ychernovskaya.crash.hash.model.ResponseStatus
 import ychernovskaya.crash.hash.model.StatusResponse
 import ychernovskaya.crash.hash.services.ManagerService
 
@@ -32,13 +32,13 @@ fun Route.hash() {
                     val result = managerService.checkResult(it)
 
                     if (result.isFailure) {
-                        call.respond(StatusResponse(status = STATUS.ERROR, data = null))
+                        call.respond(StatusResponse(status = ResponseStatus.Error, data = null))
                     }
 
                     val progress = result.getOrNull()!!
                     call.respond(
                         StatusResponse(
-                            status = if (progress.currentCount == progress.total) STATUS.READY else STATUS.IN_PROGRESS,
+                            status = if (progress.currentCount == progress.total) ResponseStatus.Ready else ResponseStatus.InProgress,
                             data = progress.currentResult
                         )
                     )

@@ -13,14 +13,14 @@ data class RequestResponse(
     val requestId: String
 )
 
-enum class STATUS {
-    IN_PROGRESS,
-    READY,
-    ERROR
+enum class ResponseStatus {
+    InProgress,
+    Ready,
+    Error
 }
 
 @Serializable
 data class StatusResponse(
-    val status: STATUS,
+    val status: ResponseStatus,
     val data: List<String>? = null
 )
