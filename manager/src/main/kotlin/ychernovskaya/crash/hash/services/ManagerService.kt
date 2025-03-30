@@ -4,18 +4,21 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import ychernovskaya.crack.hash.storage.HashModel
+import ychernovskaya.crack.hash.storage.HashStorage
+import ychernovskaya.crack.hash.storage.ProcessInfo
+import ychernovskaya.crack.hash.storage.ProcessInfoStorage
+import ychernovskaya.crack.hash.storage.Status
 import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.excepton.CallIdAlreadyExistsException
 import ychernovskaya.crash.hash.excepton.NotSuchCallIdException
+import ychernovskaya.crash.hash.excepton.WorkerException
 import ychernovskaya.crash.hash.model.CrackHashManagerRequest
-import ychernovskaya.crash.hash.model.HashModel
-import ychernovskaya.crash.hash.model.PartInfo
 import ychernovskaya.crash.hash.model.Progress
-import ychernovskaya.crash.hash.storage.HashStorage
 import kotlin.math.pow
 
 interface ManagerService {
-    suspend fun addTask(callId: String, hashData: HashData): Result<Boolean>
+    suspend fun addTask(callId: String, hashData: HashData): Result<Unit>
     fun checkResult(callId: String): Result<Progress>
     fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean>
 }
@@ -24,12 +27,13 @@ private const val PartCount = 1_000_000
 
 class ManagerServiceImpl(
     private val hashStorage: HashStorage,
+    private val processInfoStorage: ProcessInfoStorage,
     private val senderTaskService: SenderTaskService,
     private val xmlMapper: XmlMapper
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
 
-    override suspend fun addTask(callId: String, hashData: HashData): Result<Boolean> {
+    override suspend fun addTask(callId: String, hashData: HashData): Result<Unit> {
         return if (hashStorage.findByRequestId(callId) === null) {
             val sequenceSize = calcSize(hashData.maxLength, hashData.symbols.size.toDouble())
             val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
@@ -42,9 +46,9 @@ class ManagerServiceImpl(
                     requestId = callId,
                     hash = hashData.hash,
                     maxLength = hashData.maxLength,
-                    processInfo = generatePartInfoToResult(hashData.maxLength, hashData.symbols.size)
                 )
             )
+
             logger.info("Task added: $callId")
 
             withContext(Dispatchers.IO) {
@@ -62,14 +66,25 @@ class ManagerServiceImpl(
                         }
                     }
 
-                    senderTaskService.send(xmlMapper.writeValueAsBytes(message))
-                    logger.info("Encoded data")
+                    processInfoStorage.create(
+                        ProcessInfo(
+                            requestId = callId,
+                            partNumber = i,
+                            result = null,
+                            status = Status.Created
+                        )
+                    )
+
+                    try {
+                        senderTaskService.send(xmlMapper.writeValueAsBytes(message))
+                    } catch (_: Exception) {
+                        logger.error("Error with sending message in the queue")
+                    }
                 }
-                logger.info("End of task")
             }
 
-            logger.info("End of task")
-            return Result.success(true)
+            logger.info("End of created task")
+            return Result.success(Unit)
         } else {
             return Result.failure(CallIdAlreadyExistsException("Call id already exists"))
         }
@@ -77,42 +92,37 @@ class ManagerServiceImpl(
 
     override fun checkResult(callId: String): Result<Progress> {
         hashStorage.findByRequestId(callId)
-            ?.let { hashModel ->
-                val results = hashModel.processInfo
-                    .filter { it.value !== null }
-                    .map { it.value!!.toList() }
-                    .toList()
-                    .flatten()
+            ?.let {
+                val total = 0
+                val currentCount = 0
+                val currentResult = emptyList<String>().toMutableList()
 
-                val total = hashModel.processInfo.keys.size
-                val currentCount = hashModel.processInfo.values.count { it !== null }
-                return Result.success(Progress(currentCount, total, results))
+                processInfoStorage.findAllByHashRequestId(callId).forEach { processInfo ->
+                    total.inc()
+                    when (processInfo.status) {
+                        Status.Error -> return Result.failure(WorkerException("Error in the server :("))
+                        Status.End -> {
+                            currentCount.inc()
+                            currentResult.addAll(processInfo.result!!)
+                        }
+
+                        Status.Created -> Unit
+                        Status.Pending -> Unit
+                    }
+                }
+
+                return Result.success(Progress(currentCount, total, currentResult))
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
     }
 
     override fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean> {
         hashStorage.findByRequestId(callId)
-            ?.let { hashModel ->
-                hashStorage.updateByRequestId(
-                    requestId = callId,
-                    partInfo = PartInfo(partNumber, PartCount),
-                    encodedData
-                )
-                return Result.success(true)
+            ?.let {
+                val result = processInfoStorage.updateResultByRequestIdAndPartNumber(callId, partNumber, encodedData)
+                return Result.success(result)
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
-    }
-}
-
-private fun generatePartInfoToResult(maxLength: Int, symbolsCount: Int): Map<String, MutableList<String>?> {
-    val sequenceSize = calcSize(maxLength, symbolsCount.toDouble())
-    val allPartsNumberCount = ((sequenceSize - 1) / PartCount).toInt()
-
-    return buildMap<String, MutableList<String>?> {
-        for (i in 0..allPartsNumberCount) {
-            put("${i.toInt()}_${PartCount}", null)
-        }
     }
 }
 
