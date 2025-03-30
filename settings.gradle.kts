@@ -5,4 +5,5 @@ include(
     "worker",
     "model",
     "rabbitmq",
+    "storage",
 )

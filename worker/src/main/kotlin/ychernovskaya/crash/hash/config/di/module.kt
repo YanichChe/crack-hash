@@ -5,6 +5,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import ychernovskaya.crack.hash.storageModule
 import ychernovskaya.crash.hash.pubsub.PublishContext
 import ychernovskaya.crash.hash.pubsub.SubscriberContext
 import ychernovskaya.crash.hash.rabbitMQModule
@@ -16,6 +17,7 @@ import ychernovskaya.crash.hash.services.WorkerServiceImpl
 
 fun appModule() = module {
     includes(rabbitMQModule())
+    includes(storageModule())
     services()
     queue()
 }
@@ -41,5 +43,5 @@ private fun Module.services() {
     factoryOf(::WorkerServiceImpl) bind WorkerService::class
     factoryOf(::SenderEncodedDataServiceImpl) bind SenderEncodedDataService::class
     single { XmlMapper() } bind XmlMapper::class
-    single { ProcessMessage(get(), get(), get()) }
+    single { ProcessMessage(get(), get(), get(), get()) }
 }

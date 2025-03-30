@@ -44,6 +44,7 @@ dependencies {
 
     implementation(project(":model"))
     implementation(project(":rabbitmq"))
+    implementation(project(":storage"))
 
     implementation("com.rabbitmq:amqp-client:$rabbitmq_version")
 

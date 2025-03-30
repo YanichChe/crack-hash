@@ -1,4 +1,4 @@
-package ychernovskaya.crash.hash
+package ychernovskaya.crack.hash.storage
 
 interface MongoConfiguration {
     val mongoLogin: String
