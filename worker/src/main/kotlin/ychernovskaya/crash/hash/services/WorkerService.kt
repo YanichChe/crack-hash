@@ -1,6 +1,7 @@
 package ychernovskaya.crash.hash.services
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -13,7 +14,6 @@ import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.exception.InvalidHashDataFormat
 import ychernovskaya.crash.hash.model.CrackHashWorkerResponse
 import java.security.MessageDigest
-import java.util.concurrent.ConcurrentHashMap
 
 interface WorkerService {
     fun addEncodeHashTask(hashData: HashData, callId: String, partNumber: Int, partCount: Int)
@@ -24,7 +24,6 @@ class WorkerServiceImpl(
     private val xmlMapper: XmlMapper,
 ) : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
-    var resultMap = ConcurrentHashMap<String, MutableList<String>>()
 
     override fun addEncodeHashTask(
         hashData: HashData,
@@ -32,13 +31,14 @@ class WorkerServiceImpl(
         partNumber: Int,
         partCount: Int
     ) {
+        var resultSet = ConcurrentSet<String>()
+
         if (hashData.symbols.isEmpty() || hashData.maxLength <= 0) {
             logger.warn("Invalid input data for encoding task")
 
             throw InvalidHashDataFormat("Hash data symbols are empty or max length less than 0")
         }
 
-        resultMap.put(callId, mutableListOf())
         CoroutineScope(Dispatchers.Default).launch {
             launchWithSemaphore(
                 permits = 10,
@@ -50,7 +50,7 @@ class WorkerServiceImpl(
                 if (result.md5() == hashData.hash) {
                     withContext(Dispatchers.Default) {
                         logger.info("Encoded data found: $result")
-                        resultMap.get(callId)!!.add(result)
+                        resultSet.add(result)
                     }
                 }
             }
@@ -59,13 +59,11 @@ class WorkerServiceImpl(
             encodedDataMessage.requestId = callId
             encodedDataMessage.partNumber = partNumber
             encodedDataMessage.answers = CrackHashWorkerResponse.Answers().apply {
-                words.addAll(resultMap.get(callId)!!)
+                words.addAll(resultSet)
             }
 
             senderEncodedDataService.send(xmlMapper.writeValueAsBytes(encodedDataMessage))
-            logger.debug("Finished encoding task with result {}", resultMap.get(callId))
-
-            resultMap.remove(callId)
+            logger.debug("Finished encoding task with result {}", resultSet)
         }
     }
 }
@@ -86,27 +84,23 @@ private suspend fun CoroutineScope.launchWithSemaphore(
 ) = coroutineScope {
     val semaphore = Semaphore(permits)
 
-    (hashData.maxLength downTo 1)
+    val combinations = (hashData.maxLength downTo 1)
         .asSequence()
         .flatMap { length ->
             Generator.permutation(hashData.symbols).withRepetitions(length)
         }
         .drop(skip)
         .take(limit)
+        .toList()
 
-    for (length in hashData.maxLength downTo 1) {
-        Generator.permutation(hashData.symbols)
-            .withRepetitions(length)
-            .forEach { combination ->
-                launch {
-                    semaphore.acquire()
-                    try {
-                        val result = combination.joinToString("")
-                        onCombinationChecked(result)
-                    } finally {
-                        semaphore.release()
-                    }
-                }
+    combinations.forEach { combination ->
+        launch {
+            semaphore.acquire()
+            try {
+                onCombinationChecked(combination.joinToString(""))
+            } finally {
+                semaphore.release()
             }
+        }
     }
 }
