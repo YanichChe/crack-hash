@@ -91,7 +91,6 @@ private suspend fun CoroutineScope.launchWithSemaphore(
         }
         .drop(skip)
         .take(limit)
-        .toList()
 
     combinations.forEach { combination ->
         launch {
