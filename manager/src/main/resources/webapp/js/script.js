@@ -34,8 +34,7 @@ sendHashButton.addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            const data = await response.json();
-            hashResult.textContent = `Response Code: ${data.code}`;
+            hashResult.textContent = `Response: ${await response.text()}`;
         } else {
             hashResult.textContent = `Error: ${await response.text()}`;
         }
@@ -59,8 +58,7 @@ sendCodeButton.addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            const data = await response.json();
-            codeResult.textContent = `Result: ${JSON.stringify(data.result, null, 2)}`;
+            codeResult.textContent = `Result: ${await response.text()}`;
         } else {
             hashResult.textContent = `Error: ${await response.text()}`;
         }
