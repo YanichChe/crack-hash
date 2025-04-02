@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crack Hash</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="container">
+    <h1>Crack Hash</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-button active" data-tab="tab1">Hash Input</button>
+        <button class="tab-button" data-tab="tab2">Code Input</button>
+    </div>
+
+    <!-- Tab 1: Hash Input -->
+    <div id="tab1" class="tab-content active">
+        <div class="input-group">
+            <label for="hash">Hash:</label>
+            <input type="text" id="hash" maxlength="32" placeholder="Enter hash">
+        </div>
+        <div class="input-group">
+            <label for="maxLength">Max Length:</label>
+            <input type="number" id="maxLength" min="0" max="6" step="1" placeholder="Enter max length">
+        </div>
+        <button id="sendHash">Send Request</button>
+        <div id="hashResult" class="result"></div>
+    </div>
+
+    <!-- Tab 2: Code Input -->
+    <div id="tab2" class="tab-content">
+        <div class="input-group">
+            <label for="code">Code:</label>
+            <input type="text" id="code" placeholder="Enter code">
+        </div>
+        <button id="sendCode">Send Request</button>
+        <div id="codeResult" class="result"></div>
+    </div>
+</div>
+<script src="js/script.js"></script>
+</body>
+</html>

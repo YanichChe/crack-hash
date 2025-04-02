@@ -10,6 +10,7 @@ import ychernovskaya.crash.hash.config.settings.configureRouting
 import io.ktor.server.application.Application
 import org.koin.ktor.ext.inject
 import ychernovskaya.crash.hash.config.settings.configureValidation
+import ychernovskaya.crash.hash.config.settings.web
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
@@ -27,4 +28,6 @@ fun Application.module() {
     configureAdministration()
     configureRouting()
     configureRabbitMQ(config)
+
+    web()
 }

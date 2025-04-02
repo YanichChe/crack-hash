@@ -40,7 +40,7 @@ fun Application.configureRouting() {
         }
 
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            call.respondText(text = "500: Sorry network error :(", status = HttpStatusCode.InternalServerError)
         }
     }
     routing {
