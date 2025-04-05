@@ -42,9 +42,10 @@ dependencies {
     implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
     implementation("io.ktor:ktor-server-netty")
 
-    implementation(project(":model"))
-    implementation(project(":bus"))
-    implementation(project(":storage"))
+    implementation(project(":core:model"))
+    implementation(project(":core:bus"))
+    implementation(project(":core:storage"))
+    implementation(project(":core:message-digest"))
 
     implementation("com.rabbitmq:amqp-client:$rabbitmq_version")
 

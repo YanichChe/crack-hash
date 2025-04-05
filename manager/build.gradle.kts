@@ -55,9 +55,10 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
     implementation("com.rabbitmq:amqp-client:$rabbitmq_version")
 
-    implementation(project(":model"))
-    implementation(project(":bus"))
-    implementation(project(":storage"))
+    implementation(project(":core:model"))
+    implementation(project(":core:bus"))
+    implementation(project(":core:storage"))
+    implementation(project(":core:message-digest"))
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

@@ -1,9 +1,7 @@
 package ychernovskaya.crash.hash.services
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import ychernovskaya.crack.hash.storage.ProcessInfoStorage

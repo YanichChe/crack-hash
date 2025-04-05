@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import org.paukov.combinatorics3.Generator
 import org.slf4j.LoggerFactory
+import ychernovskaya.crack.hach.messagedigest.md5
 import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.exception.InvalidHashDataFormat
 import ychernovskaya.crash.hash.model.CrackHashWorkerResponse
@@ -22,6 +23,7 @@ interface WorkerService {
 class WorkerServiceImpl(
     private val senderEncodedDataService: SenderEncodedDataService,
     private val xmlMapper: XmlMapper,
+    private val messageDigest: MessageDigest
 ) : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
 
@@ -46,7 +48,7 @@ class WorkerServiceImpl(
                 limit = partCount
             ) { result ->
                 logger.debug("Checking new combination $result")
-                if (result.md5() == hashData.hash) {
+                if (result.md5(messageDigest) == hashData.hash) {
                     logger.info("Encoded data found: $result")
                     resultSet.add(result)
                 }
@@ -65,13 +67,6 @@ class WorkerServiceImpl(
 
         return encodedDataMessage
     }
-}
-
-@OptIn(ExperimentalStdlibApi::class)
-private fun String.md5(): String {
-    val md = MessageDigest.getInstance("MD5")
-    val digest = md.digest(this.toByteArray())
-    return digest.toHexString()
 }
 
 private suspend fun CoroutineScope.launchWithSemaphore(

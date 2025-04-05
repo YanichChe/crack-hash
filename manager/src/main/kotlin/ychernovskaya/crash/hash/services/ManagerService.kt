@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import ychernovskaya.crack.hach.messagedigest.md5
 import ychernovskaya.crack.hash.storage.HashModel
 import ychernovskaya.crack.hash.storage.HashStorage
 import ychernovskaya.crack.hash.storage.ProcessInfo
@@ -31,7 +32,8 @@ class ManagerServiceImpl(
     private val hashStorage: HashStorage,
     private val processInfoStorage: ProcessInfoStorage,
     private val senderTaskService: SenderTaskService,
-    private val xmlMapper: XmlMapper
+    private val xmlMapper: XmlMapper,
+    private val messageDigest: MessageDigest
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
 
@@ -129,7 +131,7 @@ class ManagerServiceImpl(
     }
 
     override fun encode(encodeString: String): String {
-        return encodeString.md5()
+        return encodeString.md5(messageDigest)
     }
 }
 
@@ -139,11 +141,4 @@ private fun calcSize(maxLength: Int, symbolsCount: Double): Long {
     return (1..maxLength).asSequence()
         .map { symbolsCount.pow(it.toDouble()).toLong() }
         .sum()
-}
-
-@OptIn(ExperimentalStdlibApi::class)
-private fun String.md5(): String {
-    val md = MessageDigest.getInstance("MD5")
-    val digest = md.digest(this.toByteArray())
-    return digest.toHexString()
 }

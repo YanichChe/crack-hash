@@ -5,6 +5,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import ychernovskaya.crack.hach.messagedigest.messageDigestModule
 import ychernovskaya.crack.hash.storageModule
 import ychernovskaya.crash.hash.pubsub.PublishContext
 import ychernovskaya.crash.hash.pubsub.SubscriberContext
@@ -19,6 +20,7 @@ import ychernovskaya.crash.hash.services.SenderTaskServiceImpl
 fun appModule() = module {
     includes(rabbitMQModule())
     includes(storageModule())
+    includes(messageDigestModule())
     services()
     queue()
 }
