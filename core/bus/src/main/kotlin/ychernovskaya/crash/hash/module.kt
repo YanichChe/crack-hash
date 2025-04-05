@@ -71,7 +71,7 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             exclusive = false
             autoDelete = false
             arguments = mapOf(
-                "x-consumer-timeout" to "60000"
+                "x-consumer-timeout" to configuration.consumerTimeout
             )
         }
 
@@ -81,7 +81,7 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             exclusive = false
             autoDelete = false
             arguments = mapOf(
-                "x-consumer-timeout" to "60000"
+                "x-consumer-timeout" to configuration.consumerTimeout
             )
         }
 
@@ -118,7 +118,11 @@ private fun loadConfiguration(): RabbitMQConfiguration {
         ?: config.propertyOrNull("rabbitmq.host")
             ?.getString()
 
-    require(login != null && password != null && port != null && host != null) {}
+    val consumerTimeout = System.getenv("RABBITMQ_TIMEOUT")
+        ?: config.propertyOrNull("rabbitmq.timeout")
+            ?.getString()
+
+    require(login != null && password != null && port != null && host != null && consumerTimeout != null) {}
 
     return object : RabbitMQConfiguration {
         override val login: String
@@ -129,6 +133,8 @@ private fun loadConfiguration(): RabbitMQConfiguration {
             get() = host
         override val port: Int
             get() = port.toInt()
+        override val consumerTimeout: Int
+            get() = consumerTimeout.toInt()
     }
 }
 
