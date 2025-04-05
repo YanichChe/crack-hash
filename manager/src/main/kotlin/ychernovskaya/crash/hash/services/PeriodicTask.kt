@@ -39,7 +39,6 @@ class PeriodicTask(
     }
 
     override fun close() {
-        println("!")
         scope.cancel()
     }
 }
