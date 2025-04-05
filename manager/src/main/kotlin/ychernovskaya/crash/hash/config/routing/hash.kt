@@ -13,6 +13,7 @@ import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import ychernovskaya.crash.hash.HashData
+import ychernovskaya.crash.hash.model.EncodeInfo
 import ychernovskaya.crash.hash.model.HashInfo
 import ychernovskaya.crash.hash.model.RequestResponse
 import ychernovskaya.crash.hash.model.ResponseStatus
@@ -43,6 +44,11 @@ fun Route.hash() {
                         )
                     )
                 }
+        }
+
+        post("encode") {
+            val encodeInfo = call.receive<EncodeInfo>()
+            call.respond(managerService.encode(encodeInfo.encodeString))
         }
 
         post {

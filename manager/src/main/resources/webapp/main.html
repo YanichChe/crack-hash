@@ -14,6 +14,7 @@
     <div class="tabs">
         <button class="tab-button active" data-tab="tab1">Hash Input</button>
         <button class="tab-button" data-tab="tab2">Code Input</button>
+        <button class="tab-button" data-tab="tab3">Encode</button>
     </div>
 
     <!-- Tab 1: Hash Input -->
@@ -38,6 +39,16 @@
         </div>
         <button id="sendCode">Send Request</button>
         <div id="codeResult" class="result"></div>
+    </div>
+
+    <!-- Tab 3: Encode -->
+    <div id="tab3" class="tab-content">
+        <div class="input-group">
+            <label for="encode">Encode:</label>
+            <input type="text" id="encode" placeholder="Enter text">
+        </div>
+        <button id="sendEncode">Send Request</button>
+        <div id="encodeResult" class="result"></div>
     </div>
 </div>
 <script src="js/script.js"></script>

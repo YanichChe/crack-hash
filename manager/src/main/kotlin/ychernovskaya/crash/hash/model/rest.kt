@@ -3,6 +3,11 @@ package ychernovskaya.crash.hash.model
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class EncodeInfo(
+    val encodeString: String,
+)
+
+@Serializable
 data class HashInfo(
     val hash: String,
     val maxLength: Int

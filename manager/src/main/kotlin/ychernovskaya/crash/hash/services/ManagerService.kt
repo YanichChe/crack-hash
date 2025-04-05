@@ -15,12 +15,14 @@ import ychernovskaya.crash.hash.excepton.NotSuchCallIdException
 import ychernovskaya.crash.hash.excepton.WorkerException
 import ychernovskaya.crash.hash.model.CrackHashManagerRequest
 import ychernovskaya.crash.hash.model.Progress
+import java.security.MessageDigest
 import kotlin.math.pow
 
 interface ManagerService {
     suspend fun addTask(callId: String, hashData: HashData): Result<Unit>
     fun checkResult(callId: String): Result<Progress>
     fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean>
+    fun encode(encodeString: String): String
 }
 
 private const val PartCount = 1_000_000
@@ -125,6 +127,10 @@ class ManagerServiceImpl(
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
     }
+
+    override fun encode(encodeString: String): String {
+        return encodeString.md5()
+    }
 }
 
 private fun calcSize(maxLength: Int, symbolsCount: Double): Long {
@@ -133,4 +139,11 @@ private fun calcSize(maxLength: Int, symbolsCount: Double): Long {
     return (1..maxLength).asSequence()
         .map { symbolsCount.pow(it.toDouble()).toLong() }
         .sum()
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+private fun String.md5(): String {
+    val md = MessageDigest.getInstance("MD5")
+    val digest = md.digest(this.toByteArray())
+    return digest.toHexString()
 }

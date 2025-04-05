@@ -4,6 +4,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.ValidationResult
+import ychernovskaya.crash.hash.model.EncodeInfo
 import ychernovskaya.crash.hash.model.HashInfo
 
 private const val MaxLengthValue = 6
@@ -19,6 +20,11 @@ fun Application.configureValidation() {
             else if (isMD5Hash(hashData.hash).not())
                 ValidationResult.Invalid("This is not MD5 hash.")
             else ValidationResult.Valid
+        }
+        validate<EncodeInfo> { encodeInfo ->
+            if (encodeInfo.encodeString.isEmpty()) {
+                ValidationResult.Invalid("Data is empty")
+            } else ValidationResult.Valid
         }
     }
 }
