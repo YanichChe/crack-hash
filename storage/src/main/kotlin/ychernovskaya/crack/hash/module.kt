@@ -34,25 +34,23 @@ private fun MongoConfiguration.getUrl(): String {
 private fun loadConfiguration(): MongoConfiguration {
     val config = loadConfig()
 
-    val mongoLogin =
-        config.propertyOrNull("mongo.login")
+    val mongoLogin = System.getenv("MONGO_LOGIN")
+        ?: config.propertyOrNull("mongo.login")
             ?.getString()
-            ?: System.getenv("MONGO_LOGIN")
 
-    val mongoPassword =
-        config.propertyOrNull("mongo.password")
+    val mongoPassword = System.getenv("MONGO_PASSWORD")
+        ?: config.propertyOrNull("mongo.password")
             ?.getString()
-            ?: System.getenv("MONGO_PASSWORD")
 
-    val mongoPort =
-        config.propertyOrNull("mongo.port")
+    val mongoPort = System.getenv("MONGO_PORT")
+        ?: config.propertyOrNull("mongo.port")
             ?.getString()
-            ?: System.getenv("MONGO_PORT")
 
-    val mongoHost =
-        config.propertyOrNull("mongo.host")
+    val mongoHost = System.getenv("MONGO_HOST")
+        ?: config.propertyOrNull("mongo.host")
             ?.getString()
-            ?: System.getenv("MONGO_HOST")
+
+    require(mongoLogin != null && mongoPort != null && mongoHost != null && mongoPassword != null)
 
     return object : MongoConfiguration {
         override val mongoLogin: String

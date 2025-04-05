@@ -12,7 +12,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.HoconApplicationConfig
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -28,7 +27,7 @@ fun rabbitMQModule(): Module = module {
     val rabbitMQConnection = RabbitMQConnection(configuration)
 
     single { rabbitMQConnection.getConnection() } bind Connection::class
-    single {configuration } bind RabbitMQConfiguration::class
+    single { configuration } bind RabbitMQConfiguration::class
 
     singleOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
     singleOf(::RabbitMQSubscriberImpl) bind RabbitMQSubscriber::class
@@ -103,25 +102,23 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
 private fun loadConfiguration(): RabbitMQConfiguration {
     val config = loadConfig()
 
-    val login =
-        config.propertyOrNull("rabbitmq.login")
+    val login = System.getenv("RABBITMQ_LOGIN")
+        ?: config.propertyOrNull("rabbitmq.login")
             ?.getString()
-            ?: System.getenv("RABBITMQ_LOGIN")
 
-    val password =
-        config.propertyOrNull("rabbitmq.password")
+    val password = System.getenv("RABBITMQ_PASSWORD")
+        ?: config.propertyOrNull("rabbitmq.password")
             ?.getString()
-            ?: System.getenv("RABBITMQ_PASSWORD")
 
-    val port =
-        config.propertyOrNull("rabbitmq.port")
+    val port = System.getenv("RABBITMQ_PORT")
+        ?: config.propertyOrNull("rabbitmq.port")
             ?.getString()
-            ?: System.getenv("RABBITMQ_PORT")
 
-    val host =
-        config.propertyOrNull("rabbitmq.host")
+    val host = System.getenv("RABBITMQ_HOST")
+        ?: config.propertyOrNull("rabbitmq.host")
             ?.getString()
-            ?: System.getenv("RABBITMQ_HOST")
+
+    require(login != null && password != null && port != null && host != null) {}
 
     return object : RabbitMQConfiguration {
         override val login: String
