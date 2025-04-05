@@ -17,10 +17,10 @@ services:
     hostname: mongo1
     restart: unless-stopped
     healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u root -p example --quiet | grep 1
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u admin -p password --quiet | grep 1
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
       - MONGO_INITDB_DATABASE=crack_hash
     command: [ "--config", "/etc/mongodb/mongod.conf" ]
     volumes:
@@ -43,10 +43,10 @@ services:
     hostname: mongo2
     restart: unless-stopped
     healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u root -p example --quiet | grep 1
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u admin -p password --quiet | grep 1
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
       - MONGO_INITDB_DATABASE=crack_hash
     command: [ "--config", "/etc/mongodb/mongod.conf" ]
     volumes:
@@ -69,10 +69,10 @@ services:
     hostname: mongo3
     restart: unless-stopped
     healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u root -p example --quiet | grep 1
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u admin -p password --quiet | grep 1
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
       - MONGO_INITDB_DATABASE=crack_hash
     command: [ "--config", "/etc/mongodb/mongod.conf" ]
     volumes:
@@ -112,12 +112,12 @@ services:
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo1
       - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=example
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
       - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
       - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
       - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
     ports:
       - "8082:8081"
     depends_on:

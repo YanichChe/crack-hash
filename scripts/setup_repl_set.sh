@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mongosh --username root --password example --authenticationDatabase admin --host mongo1:27017 --eval '
+mongosh --username admin --password password --authenticationDatabase admin --host mongo1:27017 --eval '
 rs.initiate({
     _id: "rs0",
     members: [
