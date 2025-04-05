@@ -72,7 +72,7 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             exclusive = false
             autoDelete = false
             arguments = mapOf(
-                "x-consumer-timeout" to "100"
+                "x-consumer-timeout" to "60000"
             )
         }
 
