@@ -43,7 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
 
     implementation(project(":model"))
-    implementation(project(":rabbitmq"))
+    implementation(project(":bus"))
     implementation(project(":storage"))
 
     implementation("com.rabbitmq:amqp-client:$rabbitmq_version")

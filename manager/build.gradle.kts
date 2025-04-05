@@ -56,7 +56,7 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:$rabbitmq_version")
 
     implementation(project(":model"))
-    implementation(project(":rabbitmq"))
+    implementation(project(":bus"))
     implementation(project(":storage"))
 
     testImplementation("io.ktor:ktor-server-test-host")
