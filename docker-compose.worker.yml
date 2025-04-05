@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   worker:
-    container_name: worker
     restart: unless-stopped
     image: worker_image
     build:
