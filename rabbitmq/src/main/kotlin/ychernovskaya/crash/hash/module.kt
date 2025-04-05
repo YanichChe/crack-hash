@@ -13,6 +13,7 @@ import io.ktor.server.application.install
 import io.ktor.server.config.HoconApplicationConfig
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import ychernovskaya.crash.hash.pubsub.RabbitMQPublisher
@@ -29,8 +30,8 @@ fun rabbitMQModule(): Module = module {
     single { rabbitMQConnection.getConnection() } bind Connection::class
     single {configuration } bind RabbitMQConfiguration::class
 
-    factoryOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
-    factoryOf(::RabbitMQSubscriberImpl) bind RabbitMQSubscriber::class
+    singleOf(::RabbitMQPublisherImpl) bind RabbitMQPublisher::class
+    singleOf(::RabbitMQSubscriberImpl) bind RabbitMQSubscriber::class
 }
 
 internal class RabbitMQConnection(configuration: RabbitMQConfiguration) {
@@ -59,22 +60,6 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
     }
 
     rabbitmq {
-        queueBind {
-            queue = "dlq"
-            exchange = "dlx"
-            routingKey = "dlq-dlx"
-            exchangeDeclare {
-                exchange = "dlx"
-                type = "direct"
-            }
-            queueDeclare {
-                queue = "dlq"
-                durable = true
-            }
-        }
-    }
-
-    rabbitmq {
         exchangeDeclare {
             exchange = "crash-hash-exchange"
             type = "direct"
@@ -87,9 +72,7 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             exclusive = false
             autoDelete = false
             arguments = mapOf(
-                "x-dead-letter-exchange" to "dlx",
-                "x-dead-letter-routing-key" to "dlq-dlx",
-                "x-consumer-timeout" to "60000"
+                "x-consumer-timeout" to "100"
             )
         }
 
@@ -99,8 +82,6 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
             exclusive = false
             autoDelete = false
             arguments = mapOf(
-                "x-dead-letter-exchange" to "dlx",
-                "x-dead-letter-routing-key" to "dlq-dlx",
                 "x-consumer-timeout" to "60000"
             )
         }

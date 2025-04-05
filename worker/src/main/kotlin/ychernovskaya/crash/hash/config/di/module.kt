@@ -34,7 +34,8 @@ private fun Module.queue() {
         SubscriberContext(
             queueName = "add-task-queue",
             consumerTag = "worker",
-            routingKey = "add-task-routing-key"
+            routingKey = "add-task-routing-key",
+            prefetchCount = 3
         )
     } bind SubscriberContext::class
 }

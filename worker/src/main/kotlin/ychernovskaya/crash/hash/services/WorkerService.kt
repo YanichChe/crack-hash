@@ -16,7 +16,7 @@ import ychernovskaya.crash.hash.model.CrackHashWorkerResponse
 import java.security.MessageDigest
 
 interface WorkerService {
-    fun addEncodeHashTask(hashData: HashData, callId: String, partNumber: Int, partCount: Int)
+    suspend fun addEncodeHashTask(hashData: HashData, callId: String, partNumber: Int, partCount: Int): CrackHashWorkerResponse
 }
 
 class WorkerServiceImpl(
@@ -25,21 +25,20 @@ class WorkerServiceImpl(
 ) : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
 
-    override fun addEncodeHashTask(
+    override suspend fun addEncodeHashTask(
         hashData: HashData,
         callId: String,
         partNumber: Int,
         partCount: Int
-    ) {
-        var resultSet = ConcurrentSet<String>()
+    ): CrackHashWorkerResponse {
+        val resultSet = ConcurrentSet<String>()
 
         if (hashData.symbols.isEmpty() || hashData.maxLength <= 0) {
             logger.warn("Invalid input data for encoding task")
-
             throw InvalidHashDataFormat("Hash data symbols are empty or max length less than 0")
         }
 
-        CoroutineScope(Dispatchers.Default).launch {
+        withContext(Dispatchers.Default) {
             launchWithSemaphore(
                 permits = 10,
                 hashData = hashData,
@@ -48,23 +47,23 @@ class WorkerServiceImpl(
             ) { result ->
                 logger.debug("Checking new combination $result")
                 if (result.md5() == hashData.hash) {
-                    withContext(Dispatchers.Default) {
-                        logger.info("Encoded data found: $result")
-                        resultSet.add(result)
-                    }
+                    logger.info("Encoded data found: $result")
+                    resultSet.add(result)
                 }
             }
-
-            val encodedDataMessage = CrackHashWorkerResponse()
-            encodedDataMessage.requestId = callId
-            encodedDataMessage.partNumber = partNumber
-            encodedDataMessage.answers = CrackHashWorkerResponse.Answers().apply {
-                words.addAll(resultSet)
-            }
-
-            senderEncodedDataService.send(xmlMapper.writeValueAsBytes(encodedDataMessage))
-            logger.debug("Finished encoding task with result {}", resultSet)
         }
+
+        val encodedDataMessage = CrackHashWorkerResponse()
+        encodedDataMessage.requestId = callId
+        encodedDataMessage.partNumber = partNumber
+        encodedDataMessage.answers = CrackHashWorkerResponse.Answers().apply {
+            words.addAll(resultSet)
+        }
+
+        senderEncodedDataService.send(xmlMapper.writeValueAsBytes(encodedDataMessage))
+        logger.info("Finished encoding task with result {}", resultSet)
+
+        return encodedDataMessage
     }
 }
 

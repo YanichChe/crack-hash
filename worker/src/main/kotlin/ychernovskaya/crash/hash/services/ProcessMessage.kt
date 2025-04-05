@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import ychernovskaya.crack.hash.storage.ProcessInfoStorage
 import ychernovskaya.crack.hash.storage.Status
@@ -20,18 +21,18 @@ class ProcessMessage(
 ) {
     val logger = LoggerFactory.getLogger(ProcessMessage::class.java)
 
-    fun start() {
-        CoroutineScope(Dispatchers.Default).launch {
-            rabbitMQSubscriber.subscribe { message ->
-                val request = xmlMapper.readValue(message, CrackHashManagerRequest::class.java)
-                logger.info("Get new task")
+    suspend fun start() {
+        rabbitMQSubscriber.subscribe { message ->
+            val request = xmlMapper.readValue(message, CrackHashManagerRequest::class.java)
+            logger.info("Get new task")
 
-                processInfoStorage.updateStatusByRequestIdAndPartNumber(
-                    requestId = request.requestId,
-                    partNumber = request.partNumber,
-                    status = Status.Pending
-                )
+            processInfoStorage.updateStatusByRequestIdAndPartNumber(
+                requestId = request.requestId,
+                partNumber = request.partNumber,
+                status = Status.Pending
+            )
 
+            val result = withContext(Dispatchers.Default) {
                 workerService.addEncodeHashTask(
                     hashData = HashData(
                         hash = request.hash,
@@ -43,6 +44,8 @@ class ProcessMessage(
                     partCount = request.partCount,
                 )
             }
+
+            logger.info("Task ended ${result.partNumber}")
         }
     }
 }

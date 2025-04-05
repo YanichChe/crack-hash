@@ -35,7 +35,8 @@ private fun Module.queue() {
         SubscriberContext(
             queueName = "encoded-queue",
             consumerTag = "manager",
-            routingKey = "encoded-routing-key"
+            routingKey = "encoded-routing-key",
+            prefetchCount = 10
         )
     } bind SubscriberContext::class
 }

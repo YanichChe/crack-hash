@@ -3,6 +3,7 @@ package ychernovskaya.crash.hash.config.setting
 import io.ktor.server.application.install
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
+import kotlinx.coroutines.launch
 import org.koin.ktor.ext.inject
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -17,6 +18,8 @@ fun Application.configureFrameworks() {
 
     environment.monitor.subscribe(ApplicationStarted) {
         val processMessage: ProcessMessage by inject()
-        processMessage.start()
+        launch {
+            processMessage.start()
+        }
     }
 }
