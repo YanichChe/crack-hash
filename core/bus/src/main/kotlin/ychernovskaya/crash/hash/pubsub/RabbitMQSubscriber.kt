@@ -55,7 +55,7 @@ class RabbitMQSubscriberImpl(
                                 logger.info("Callback ended")
                                 channel.basicAck(deliveryTag, false)
                             } catch (e: Exception) {
-                                logger.error("Error in callback: ${e.message}")
+                                logger.error("Error in callback: ${e.message} ${e.stackTraceToString()}")
                                 channel.basicReject(deliveryTag, false)
                             }
                         }

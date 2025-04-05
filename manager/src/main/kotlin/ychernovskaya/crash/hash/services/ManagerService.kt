@@ -33,7 +33,6 @@ class ManagerServiceImpl(
     private val processInfoStorage: ProcessInfoStorage,
     private val senderTaskService: SenderTaskService,
     private val xmlMapper: XmlMapper,
-    private val messageDigest: MessageDigest
 ) : ManagerService {
     private val logger = LoggerFactory.getLogger(ManagerServiceImpl::class.java)
 
@@ -131,7 +130,7 @@ class ManagerServiceImpl(
     }
 
     override fun encode(encodeString: String): String {
-        return encodeString.md5(messageDigest)
+        return encodeString.md5()
     }
 }
 

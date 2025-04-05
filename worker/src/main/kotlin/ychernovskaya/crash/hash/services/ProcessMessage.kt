@@ -23,6 +23,7 @@ class ProcessMessage(
         rabbitMQSubscriber.subscribe { message ->
             val request = xmlMapper.readValue(message, CrackHashManagerRequest::class.java)
             logger.info("Get new task")
+            logger.info(request.toString())
 
             processInfoStorage.updateStatusByRequestIdAndPartNumber(
                 requestId = request.requestId,

@@ -14,7 +14,6 @@ import ychernovskaya.crack.hach.messagedigest.md5
 import ychernovskaya.crash.hash.HashData
 import ychernovskaya.crash.hash.exception.InvalidHashDataFormat
 import ychernovskaya.crash.hash.model.CrackHashWorkerResponse
-import java.security.MessageDigest
 
 interface WorkerService {
     suspend fun addEncodeHashTask(hashData: HashData, callId: String, partNumber: Int, partCount: Int): CrackHashWorkerResponse
@@ -23,7 +22,6 @@ interface WorkerService {
 class WorkerServiceImpl(
     private val senderEncodedDataService: SenderEncodedDataService,
     private val xmlMapper: XmlMapper,
-    private val messageDigest: MessageDigest
 ) : WorkerService {
     val logger = LoggerFactory.getLogger(WorkerServiceImpl::class.java)
 
@@ -48,7 +46,7 @@ class WorkerServiceImpl(
                 limit = partCount
             ) { result ->
                 logger.debug("Checking new combination $result")
-                if (result.md5(messageDigest) == hashData.hash) {
+                if (result.md5() == hashData.hash) {
                     logger.info("Encoded data found: $result")
                     resultSet.add(result)
                 }
