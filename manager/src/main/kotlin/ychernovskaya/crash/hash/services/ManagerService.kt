@@ -115,6 +115,10 @@ class ManagerServiceImpl(
                     }
                 }
 
+                if (total == 0) {
+                    return Result.failure(WorkerException("Error in the server :("))
+                }
+
                 return Result.success(Progress(currentCount, total, currentResult))
             }
             ?: return Result.failure(NotSuchCallIdException("Call id $callId not found"))
