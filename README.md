@@ -10,6 +10,8 @@ the MD-5 hash of a certain word, as well as its maximum length.
 * The manager processes the request: generates tasks in accordance with the specified number of workers (computing nodes) for enumeration of words composed of the alphabet passed to them. Then sends them to the workers for execution.
 * Each worker accepts the task, enumerates words in a given range and calculates their hash. Finds words whose hash matches the specified one, and returns the result of the work to the manager through the queue.
 
+![telegram-cloud-photo-size-2-5444988611511578664-y](https://github.com/user-attachments/assets/c2d5ae64-73ac-4e53-8a22-2ca8bbfad98d)
+
 ## Quickstart
 
 Clone project:
