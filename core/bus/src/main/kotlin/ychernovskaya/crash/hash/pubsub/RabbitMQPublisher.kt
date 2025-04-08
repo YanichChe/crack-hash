@@ -1,5 +1,6 @@
 package ychernovskaya.crash.hash.pubsub
 
+import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Connection
 
 interface RabbitMQPublisher {
@@ -17,11 +18,16 @@ class RabbitMQPublisherImpl(
     var channel = connection.createChannel()
 
     override suspend fun publish(message: ByteArray) {
-        channel.basicPublish(
-            publishContext.exchange,
-            publishContext.routingKey,
-            null,
-            message
-        )
+        var propertyBuilder = AMQP.BasicProperties.Builder()
+        propertyBuilder.deliveryMode(2)
+
+        if (channel.isOpen) {
+            channel.basicPublish(
+                publishContext.exchange,
+                publishContext.routingKey,
+                propertyBuilder.build(),
+                message
+            )
+        }
     }
 }
