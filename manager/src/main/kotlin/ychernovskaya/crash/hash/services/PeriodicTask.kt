@@ -22,13 +22,14 @@ class PeriodicTask(
                     val hashModel = hashStorageImpl.findByRequestId(task.requestId)
                     logger.info("Restarting ${task.requestId} ${task.partNumber}")
                     hashModel?.let {
-                        managerService.addTask(
-                            callId = it.requestId,
+                        managerService.sendMessage(
+                            callId = task.requestId,
                             hashData = HashData(
                                 hash = hashModel.hash,
                                 maxLength = hashModel.maxLength,
                                 symbols = hashModel.symbols
-                            )
+                            ),
+                            partNumberValue = task.partNumber
                         )
                     }
                 }

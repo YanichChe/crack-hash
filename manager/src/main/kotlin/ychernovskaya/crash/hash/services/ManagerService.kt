@@ -16,7 +16,6 @@ import ychernovskaya.crash.hash.excepton.NotSuchCallIdException
 import ychernovskaya.crash.hash.excepton.WorkerException
 import ychernovskaya.crash.hash.model.CrackHashManagerRequest
 import ychernovskaya.crash.hash.model.Progress
-import java.security.MessageDigest
 import kotlin.math.pow
 
 interface ManagerService {
@@ -24,9 +23,10 @@ interface ManagerService {
     fun checkResult(callId: String): Result<Progress>
     fun addResult(callId: String, partNumber: Int, encodedData: List<String>): Result<Boolean>
     fun encode(encodeString: String): String
+    suspend fun sendMessage(callId: String, partNumberValue: Int, hashData: HashData)
 }
 
-private const val PartCount = 1_000_000
+private const val PartCount = 10_000_000
 
 class ManagerServiceImpl(
     private val hashStorage: HashStorage,
@@ -59,17 +59,6 @@ class ManagerServiceImpl(
                 for (i in 0..allPartsNumberCount) {
                     logger.debug("Part Number: ${i.toInt()}")
 
-                    val message = CrackHashManagerRequest().apply {
-                        requestId = callId
-                        partNumber = i
-                        partCount = PartCount
-                        hash = hashData.hash
-                        maxLength = hashData.maxLength
-                        alphabet = CrackHashManagerRequest.Alphabet().apply {
-                            symbols.addAll(hashData.symbols)
-                        }
-                    }
-
                     processInfoStorage.create(
                         ProcessInfo(
                             requestId = callId,
@@ -79,11 +68,7 @@ class ManagerServiceImpl(
                         )
                     )
 
-                    try {
-                        senderTaskService.send(xmlMapper.writeValueAsBytes(message))
-                    } catch (_: Exception) {
-                        logger.error("Error with sending message in the queue")
-                    }
+                    sendMessage(callId = callId, hashData = hashData, partNumberValue = i)
                 }
             }
 
@@ -97,21 +82,20 @@ class ManagerServiceImpl(
     override fun checkResult(callId: String): Result<Progress> {
         hashStorage.findByRequestId(callId)
             ?.let {
-                val total = 0
-                val currentCount = 0
-                val currentResult = emptyList<String>().toMutableList()
+                var total = 0
+                var currentCount = 0
+                var currentResult = emptyList<String>().toMutableList()
 
                 processInfoStorage.findAllByHashRequestId(callId).forEach { processInfo ->
-                    total.inc()
+                    total = total.inc()
                     when (processInfo.status) {
                         Status.Error -> return Result.failure(WorkerException("Error in the server :("))
                         Status.End -> {
-                            currentCount.inc()
+                            currentCount = currentCount.inc()
                             currentResult.addAll(processInfo.result!!)
                         }
 
                         Status.Created -> Unit
-                        Status.Pending -> Unit
                     }
                 }
 
@@ -135,6 +119,25 @@ class ManagerServiceImpl(
 
     override fun encode(encodeString: String): String {
         return encodeString.md5()
+    }
+
+    override suspend fun sendMessage(callId: String, partNumberValue: Int, hashData: HashData) {
+        val message = CrackHashManagerRequest().apply {
+            requestId = callId
+            partNumber = partNumberValue
+            partCount = PartCount
+            hash = hashData.hash
+            maxLength = hashData.maxLength
+            alphabet = CrackHashManagerRequest.Alphabet().apply {
+                symbols.addAll(hashData.symbols)
+            }
+        }
+
+        try {
+            senderTaskService.send(xmlMapper.writeValueAsBytes(message))
+        } catch (_: Exception) {
+            logger.error("Error with sending message in the queue")
+        }
     }
 }
 
