@@ -36,7 +36,7 @@ private fun Module.queue() {
             queueName = "encoded-queue",
             consumerTag = "manager",
             routingKey = "encoded-routing-key",
-            prefetchCount = 10
+            prefetchCount = 52 // bombardino crocodilo
         )
     } bind SubscriberContext::class
 }
