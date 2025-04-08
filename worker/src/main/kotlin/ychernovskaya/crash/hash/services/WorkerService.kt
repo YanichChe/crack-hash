@@ -61,7 +61,7 @@ class WorkerServiceImpl(
         }
 
         senderEncodedDataService.send(xmlMapper.writeValueAsBytes(encodedDataMessage))
-        logger.info("Finished encoding task with result {}", resultSet)
+        logger.debug("Finished encoding task with result {}", resultSet)
 
         return encodedDataMessage
     }
