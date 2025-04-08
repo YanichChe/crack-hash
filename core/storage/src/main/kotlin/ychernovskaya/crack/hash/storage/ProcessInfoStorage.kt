@@ -8,7 +8,6 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
 import org.litote.kmongo.lt
-import org.litote.kmongo.or
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -95,9 +94,7 @@ class ProcessInfoStorageImpl(mongoClient: MongoClient) : ProcessInfoStorage {
 
     override fun getNotStartedTasks(): List<ProcessInfo> {
         val timeCondition = ProcessInfo::createdAt lt Instant.now().minus(5, ChronoUnit.MINUTES)
-        val statusCondition = or(ProcessInfo::status eq Status.Created, ProcessInfo::status eq Status.Pending)
-
-        val query = and(timeCondition, statusCondition)
+        val query = and(timeCondition, ProcessInfo::status eq Status.Created)
 
         return processInfoCollection.find(query).toList()
     }

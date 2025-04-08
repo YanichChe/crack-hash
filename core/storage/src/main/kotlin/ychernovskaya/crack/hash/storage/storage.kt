@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import java.time.Instant
 
 enum class Status {
-    Created, Pending, End, Error
+    Created, End, Error
 }
 
 data class HashModel(
