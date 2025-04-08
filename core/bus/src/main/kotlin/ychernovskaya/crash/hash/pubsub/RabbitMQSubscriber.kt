@@ -46,16 +46,14 @@ class RabbitMQSubscriberImpl(
                 ) {
                     val routingKey = envelope.routingKey
                     val deliveryTag = envelope.deliveryTag
-                    logger.info("$routingKey ${subscriberContext.routingKey}")
 
                     if (subscriberContext.routingKey == routingKey) {
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
                                 callBack(body)
-                                logger.info("Callback ended")
                                 channel.basicAck(deliveryTag, false)
                             } catch (e: Exception) {
-                                logger.error("Error in callback: ${e.message} ${e.stackTraceToString()}")
+                                logger.error("Error in callback: ${e.message}")
                                 channel.basicReject(deliveryTag, false)
                             }
                         }
