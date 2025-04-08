@@ -39,7 +39,7 @@ fun Route.hash() {
                     val progress = result.getOrNull()!!
                     call.respond(
                         StatusResponse(
-                            status = if (progress.currentCount == progress.total) ResponseStatus.Ready else ResponseStatus.InProgress,
+                            status = if (progress.currentCount == progress.total && progress.total != 0) ResponseStatus.Ready else ResponseStatus.InProgress,
                             data = progress.currentResult
                         )
                     )
