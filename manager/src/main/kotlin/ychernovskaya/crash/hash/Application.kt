@@ -19,6 +19,9 @@ fun main(args: Array<String>) {
 @Suppress("unused")
 fun Application.module() {
     val config: RabbitMQConfiguration by inject()
+    val exchangeConfig = ExchangeConfiguration(exchangeName = "crash-hash-exchange")
+    val addTaskQueueConfig = QueueConfiguration(queueName = "add-task-queue", consumerTimeout = 60_000, routingKey = "add-task-routing-key")
+    val encodeQueueConfig = QueueConfiguration(queueName = "encoded-queue", consumerTimeout = 60_000, routingKey = "encoded-routing-key")
 
     configureHTTP()
     configureMonitoring()
@@ -27,7 +30,6 @@ fun Application.module() {
     configureFrameworks()
     configureAdministration()
     configureRouting()
-    configureRabbitMQ(config)
-
+    configureRabbitMQ(config, mapOf(addTaskQueueConfig to exchangeConfig, encodeQueueConfig to exchangeConfig))
     web()
 }

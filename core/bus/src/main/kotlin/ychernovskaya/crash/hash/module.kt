@@ -50,7 +50,10 @@ internal class RabbitMQConnection(configuration: RabbitMQConfiguration) {
     }
 }
 
-fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
+fun Application.configureRabbitMQ(
+    configuration: RabbitMQConfiguration,
+    queuesToExchange: Map<QueueConfiguration, ExchangeConfiguration>
+) {
     install(RabbitMQ) {
         uri = "amqp://${configuration.login}:${configuration.password}@${configuration.host}:${configuration.port}"
         defaultConnectionName = "default-connection"
@@ -59,42 +62,31 @@ fun Application.configureRabbitMQ(configuration: RabbitMQConfiguration) {
     }
 
     rabbitmq {
-        exchangeDeclare {
-            exchange = "crash-hash-exchange"
-            type = "direct"
-            durable = true
+        queuesToExchange.values.forEach {
+            exchangeDeclare {
+                exchange = it.exchangeName
+                type = "direct"
+                durable = true
+            }
+
         }
 
-        queueDeclare {
-            queue = "add-task-queue"
-            durable = true
-            exclusive = false
-            autoDelete = false
-            arguments = mapOf(
-                "x-consumer-timeout" to configuration.consumerTimeout
-            )
-        }
+        queuesToExchange.entries.forEach { (queueConfig, exchangeConfig) ->
+            queueDeclare {
+                queue = queueConfig.queueName
+                durable = true
+                exclusive = false
+                autoDelete = false
+                arguments = mapOf(
+                    "x-consumer-timeout" to queueConfig.consumerTimeout
+                )
+            }
 
-        queueDeclare {
-            queue = "encoded-queue"
-            durable = true
-            exclusive = false
-            autoDelete = false
-            arguments = mapOf(
-                "x-consumer-timeout" to configuration.consumerTimeout
-            )
-        }
-
-        queueBind {
-            queue = "add-task-queue"
-            exchange = "crash-hash-exchange"
-            routingKey = "add-task-routing-key"
-        }
-
-        queueBind {
-            queue = "encoded-queue"
-            exchange = "crash-hash-exchange"
-            routingKey = "encoded-routing-key"
+            queueBind {
+                queue = queueConfig.queueName
+                exchange = exchangeConfig.exchangeName
+                routingKey = queueConfig.routingKey
+            }
         }
     }
 }

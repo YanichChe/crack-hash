@@ -7,3 +7,13 @@ interface RabbitMQConfiguration {
     val port: Int
     val consumerTimeout: Int
 }
+
+data class QueueConfiguration (
+    val queueName: String,
+    val consumerTimeout: Int,
+    val routingKey: String,
+)
+
+data class ExchangeConfiguration (
+    val exchangeName: String
+)
