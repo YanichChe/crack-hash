@@ -16,7 +16,6 @@ services:
       - RABBITMQ_PASSWORD=password
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-      - RABBITMQ_TIMEOUT=60000
     ports:
       - "8081:8080"
     depends_on:
